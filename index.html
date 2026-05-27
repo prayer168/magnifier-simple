@@ -1,0 +1,2235 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>放大鏡實驗互動學習</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans TC','微軟正黑體',sans-serif;background:#eef5ff;color:#1a2b4a;font-size:18px;min-height:100vh;}
+
+/* Header */
+header{background:linear-gradient(135deg,#1565c0,#42a5f5);color:#fff;padding:22px 32px;display:flex;align-items:center;gap:16px;box-shadow:0 4px 16px rgba(21,101,192,.25);}
+.header-icon{font-size:42px;}
+header h1{font-size:28px;font-weight:800;letter-spacing:.5px;}
+header .sub{font-size:15px;opacity:.85;margin-top:4px;}
+
+/* Tab bar */
+.tab-bar{display:flex;background:#fff;border-bottom:3px solid #e3eeff;padding:0 24px;gap:4px;box-shadow:0 2px 8px rgba(21,101,192,.08);overflow-x:auto;}
+.tab-btn{padding:14px 26px;font-size:17px;font-weight:700;border:none;background:none;cursor:pointer;color:#7a8fad;border-bottom:3px solid transparent;margin-bottom:-3px;transition:all .2s;white-space:nowrap;}
+.tab-btn:hover{color:#1565c0;background:#f0f6ff;}
+.tab-btn.active{color:#1565c0;border-bottom-color:#1565c0;background:#f0f6ff;}
+
+/* Tab content */
+.tab-pane{display:none;padding:32px;max-width:1080px;margin:0 auto;animation:fadeIn .3s;}
+.tab-pane.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+/* Section heading */
+.sec-title{font-size:26px;font-weight:800;color:#1565c0;margin-bottom:6px;}
+.sec-desc{font-size:16px;color:#5a6e90;line-height:1.8;margin-bottom:22px;}
+
+/* Card shell */
+.card-shell{background:#fff;border-radius:18px;box-shadow:0 4px 20px rgba(21,101,192,.1);padding:24px;margin-bottom:20px;}
+
+/* Slider */
+.slider-row{display:flex;align-items:center;gap:14px;margin-top:18px;flex-wrap:wrap;}
+.slider-row label{font-size:17px;font-weight:700;color:#1a2b4a;white-space:nowrap;}
+input[type=range]{flex:1;min-width:160px;height:8px;cursor:pointer;accent-color:#1565c0;}
+.sval{font-size:20px;font-weight:800;color:#1565c0;min-width:70px;}
+
+/* Info strip */
+.info-strip{border-radius:12px;padding:16px 20px;margin-top:16px;font-size:16px;line-height:1.85;border-left:5px solid #42a5f5;background:#e8f3ff;}
+.info-strip strong{font-size:19px;color:#1565c0;display:block;margin-bottom:4px;}
+
+/* Table */
+.tbl-wrap{background:#fff;border-radius:18px;box-shadow:0 4px 20px rgba(21,101,192,.1);overflow:hidden;margin-top:24px;}
+.tbl-head{background:#1565c0;color:#fff;padding:14px 20px;font-size:18px;font-weight:700;}
+table{width:100%;border-collapse:collapse;font-size:16px;}
+thead tr{background:#ddeeff;}
+th{padding:12px 14px;text-align:left;color:#1565c0;font-weight:700;}
+td{padding:12px 14px;border-bottom:1px solid #e3eeff;}
+tr:last-child td{border-bottom:none;}
+tr:nth-child(even) td{background:#f5f9ff;}
+
+/* Q&A glossary */
+.qa-search-wrap{position:relative;margin-bottom:20px;}
+.qa-search{width:100%;padding:14px 20px 14px 48px;font-size:17px;border:2px solid #b0cef5;border-radius:12px;outline:none;font-family:inherit;background:#fff;transition:border-color .2s;}
+.qa-search:focus{border-color:#1565c0;box-shadow:0 0 0 3px rgba(21,101,192,.12);}
+.qa-search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:20px;pointer-events:none;}
+.qa-cats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+.qa-cat{padding:7px 18px;border-radius:20px;border:2px solid #b0cef5;background:#fff;font-size:15px;font-weight:700;cursor:pointer;color:#5a6e90;transition:all .2s;}
+.qa-cat:hover,.qa-cat.on{background:#1565c0;border-color:#1565c0;color:#fff;}
+.qa-list{display:flex;flex-direction:column;gap:12px;}
+.qa-item{background:#fff;border-radius:14px;box-shadow:0 3px 14px rgba(21,101,192,.09);overflow:hidden;border:2px solid transparent;transition:border-color .2s;}
+.qa-item:hover{border-color:#90caf9;}
+.qa-item.open{border-color:#1565c0;}
+.qa-q{display:flex;align-items:center;gap:14px;padding:18px 20px;cursor:pointer;user-select:none;}
+.qa-badge{background:#1565c0;color:#fff;border-radius:8px;font-size:13px;font-weight:800;padding:4px 10px;white-space:nowrap;flex-shrink:0;}
+.qa-badge.green{background:#2e7d32;}
+.qa-badge.amber{background:#e65100;}
+.qa-badge.purple{background:#6a1b9a;}
+.qa-qtxt{font-size:19px;font-weight:700;color:#1a2b4a;flex:1;}
+.qa-en{font-size:13px;color:#7a8fad;margin-left:4px;font-weight:400;}
+.qa-arrow{font-size:18px;color:#90a4ae;transition:transform .3s;flex-shrink:0;}
+.qa-item.open .qa-arrow{transform:rotate(180deg);}
+.qa-body{display:none;padding:0 20px 20px 20px;}
+.qa-item.open .qa-body{display:block;}
+.qa-def{font-size:16px;line-height:1.9;color:#1a2b4a;margin-bottom:12px;}
+.qa-def b{color:#1565c0;}
+.qa-tags{display:flex;flex-wrap:wrap;gap:8px;}
+.qa-tag{padding:5px 14px;border-radius:20px;font-size:14px;font-weight:600;}
+.qa-tag.life{background:#e8f5e9;color:#2e7d32;}
+.qa-tag.exp{background:#e3f2fd;color:#1565c0;}
+.qa-tag.tip{background:#fff8e1;color:#e65100;}
+.qa-none{text-align:center;padding:40px;color:#90a4ae;font-size:17px;}
+/* Q&A new sidebar */
+.qa-panel-sb{width:230px;flex-shrink:0;display:flex;flex-direction:column;gap:0;}
+.qa-sb-top{background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(21,101,192,.08);padding:12px;margin-bottom:10px;}
+.qa-sb-inp{position:relative;margin-bottom:8px;}
+.qa-sb-inp input{width:100%;padding:9px 10px 9px 34px;font-size:14px;border:2px solid #b0cef5;border-radius:9px;outline:none;font-family:inherit;background:#f8fbff;transition:border-color .2s;}
+.qa-sb-inp input:focus{border-color:#1565c0;}
+.qa-sb-inp span{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;}
+.qa-sb-cats{display:flex;flex-wrap:wrap;gap:5px;}
+.qa-sb-cat{padding:4px 10px;border-radius:14px;border:1.5px solid #b0cef5;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:#5a6e90;transition:all .18s;}
+.qa-sb-cat:hover,.qa-sb-cat.on{background:#1565c0;border-color:#1565c0;color:#fff;}
+.qa-sb-list{display:flex;flex-direction:column;gap:5px;max-height:480px;overflow-y:auto;padding-right:4px;}
+.qa-sb-list::-webkit-scrollbar{width:4px;}
+.qa-sb-list::-webkit-scrollbar-track{background:#f0f6ff;border-radius:4px;}
+.qa-sb-list::-webkit-scrollbar-thumb{background:#90caf9;border-radius:4px;}
+.qa-si{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:10px;cursor:pointer;border:2px solid transparent;background:#fff;box-shadow:0 1px 6px rgba(21,101,192,.07);transition:all .18s;}
+.qa-si:hover{border-color:#90caf9;background:#f0f6ff;}
+.qa-si.on{border-color:#1565c0;background:#e8f3ff;}
+.qa-si .qi-badge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;color:#fff;flex-shrink:0;}
+.qa-si .qi-badge.透鏡{background:#1565c0;}.qa-si .qi-badge.距離{background:#e65100;}.qa-si .qi-badge.成像{background:#2e7d32;}.qa-si .qi-badge.光學{background:#6a1b9a;}
+.qa-si .qi-txt{font-size:14px;font-weight:700;color:#1a2b4a;line-height:1.3;}
+.qa-si.on .qi-txt{color:#1565c0;}
+.qa-si .qi-en{font-size:11px;color:#90a4ae;font-weight:400;}
+/* Q&A panel content */
+.qp-title{font-size:22px;font-weight:800;color:#1565c0;margin-bottom:4px;}
+.qp-en{font-size:15px;color:#7a8fad;margin-bottom:14px;}
+.qp-def{font-size:16px;line-height:1.95;color:#1a2b4a;margin-bottom:16px;}
+.qp-def b{color:#1565c0;}
+.qp-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.qp-tag{padding:5px 14px;border-radius:20px;font-size:14px;font-weight:600;}
+.qp-tag.life{background:#e8f5e9;color:#2e7d32;}
+.qp-tag.exp{background:#e3f2fd;color:#1565c0;}
+.qp-tag.tip{background:#fff8e1;color:#e65100;}
+.qp-none{text-align:center;padding:40px;color:#90a4ae;font-size:16px;}
+
+/* Knowledge sidebar layout */
+.know-layout{display:flex;gap:20px;align-items:flex-start;}
+.know-sidebar{width:210px;flex-shrink:0;display:flex;flex-direction:column;gap:8px;}
+.know-si{display:flex;align-items:center;gap:11px;padding:13px 14px;border-radius:12px;cursor:pointer;border:2px solid transparent;background:#fff;box-shadow:0 2px 10px rgba(21,101,192,.08);transition:all .2s;}
+.know-si:hover{border-color:#90caf9;background:#f0f6ff;}
+.know-si.on{border-color:#1565c0;background:#e8f3ff;}
+.know-si .si-icon{font-size:24px;flex-shrink:0;}
+.know-si .si-txt{font-size:15px;font-weight:700;color:#1a2b4a;line-height:1.3;}
+.know-si.on .si-txt{color:#1565c0;}
+.know-panel{flex:1;background:#fff;border-radius:18px;box-shadow:0 4px 20px rgba(21,101,192,.1);padding:28px;min-height:500px;}
+.kp-head{font-size:22px;font-weight:800;color:#1565c0;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.kp-text{font-size:16px;line-height:1.95;color:#1a2b4a;margin-bottom:18px;}
+.kp-text b{color:#1565c0;}
+.kp-svg{background:#f0f6ff;border-radius:14px;padding:18px 12px;margin-bottom:16px;text-align:center;}
+.kp-svg svg{max-width:100%;height:auto;}
+.kp-tip{background:#fff8e1;border-left:4px solid #f59e0b;border-radius:8px;padding:12px 16px;font-size:15px;line-height:1.75;color:#1a2b4a;}
+@media(max-width:640px){.know-layout{flex-direction:column;}.know-sidebar{width:100%;flex-direction:row;flex-wrap:wrap;}.know-si{flex:1;min-width:120px;}}
+
+/* Quiz */
+.quiz-bar{background:#e8f3ff;border-radius:10px;padding:10px 20px;margin-bottom:24px;font-size:16px;display:flex;justify-content:space-between;align-items:center;}
+.q-block{background:#fff;border-radius:16px;box-shadow:0 4px 16px rgba(21,101,192,.09);padding:28px;margin-bottom:18px;}
+.q-num{font-size:13px;font-weight:800;color:#42a5f5;letter-spacing:.5px;margin-bottom:8px;text-transform:uppercase;}
+.q-text{font-size:20px;font-weight:700;color:#1a2b4a;line-height:1.6;margin-bottom:20px;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.opt{padding:14px 16px;border:2px solid #cde0f5;border-radius:10px;background:#f6f9ff;font-size:16px;cursor:pointer;text-align:left;transition:all .18s;line-height:1.55;font-family:inherit;}
+.opt:hover:not(:disabled){border-color:#1565c0;background:#e4f0ff;}
+.opt.correct{background:#d1fae5;border-color:#16a34a;color:#14532d;}
+.opt.wrong{background:#fee2e2;border-color:#dc2626;color:#7f1d1d;}
+.opt:disabled{cursor:default;}
+.explain{margin-top:14px;padding:14px 18px;background:#fffbeb;border-left:4px solid #f59e0b;border-radius:8px;font-size:16px;line-height:1.75;display:none;}
+.explain.show{display:block;}
+
+/* Quiz action buttons */
+.quiz-actions{display:flex;gap:16px;justify-content:center;margin-top:24px;flex-wrap:wrap;}
+.btn-pri{padding:14px 40px;background:#1565c0;color:#fff;border:none;border-radius:10px;font-size:18px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s;}
+.btn-pri:hover{background:#0d47a1;}
+.btn-sec{padding:14px 40px;background:#fff;color:#1565c0;border:2px solid #1565c0;border-radius:10px;font-size:18px;font-weight:700;cursor:pointer;font-family:inherit;}
+
+/* Magnifier mode toggle */
+.mag-mode-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.mag-mode-btn{padding:10px 24px;font-size:16px;font-weight:700;border:2px solid #b0cef5;border-radius:10px;background:#fff;color:#5a6e90;cursor:pointer;font-family:inherit;transition:all .2s;}
+.mag-mode-btn:hover{border-color:#1565c0;color:#1565c0;background:#f0f6ff;}
+.mag-mode-btn.on{background:#1565c0;border-color:#1565c0;color:#fff;}
+.mag-ctrl-row{display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap;}
+.mag-ctrl-hint{font-size:14px;color:#7a8fad;padding:8px 14px;background:#f0f6ff;border-radius:8px;line-height:1.6;}
+
+/* Story source citation */
+.kp-src{margin-top:14px;padding:10px 16px;background:#f0f4ff;border-left:4px solid #90a4ae;border-radius:8px;font-size:13px;color:#546e7a;line-height:1.7;}
+.kp-src b{color:#1565c0;}
+
+/* Result box */
+.result-box{background:linear-gradient(135deg,#1565c0,#42a5f5);color:#fff;border-radius:20px;padding:40px;text-align:center;margin-top:24px;display:none;}
+.result-box.show{display:block;}
+.r-score{font-size:60px;font-weight:900;}
+.r-msg{font-size:22px;margin-top:12px;}
+
+canvas{display:block;width:100%;max-width:100%;border-radius:10px;}
+
+@media(max-width:640px){
+  header h1{font-size:20px;}
+  .tab-btn{padding:11px 14px;font-size:14px;}
+  .tab-pane{padding:16px;}
+  .opts{grid-template-columns:1fr;}
+  .sec-title{font-size:21px;}
+  .q-text{font-size:17px;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-icon">🔍</div>
+  <div>
+    <h1>放大鏡實驗互動學習</h1>
+    <div class="sub">科學探究與實作 ｜ 凸透鏡成像原理 ｜ 國小高年級自然</div>
+  </div>
+</header>
+
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="sim" onclick="switchTab(this,'sim')">🕯️ 成像模擬</button>
+  <button class="tab-btn" data-tab="ray" onclick="switchTab(this,'ray')">📐 光線路徑</button>
+  <button class="tab-btn" data-tab="mag" onclick="switchTab(this,'mag')">🔬 放大鏡模擬</button>
+  <button class="tab-btn" data-tab="know" onclick="switchTab(this,'know')">💡 光學常識</button>
+  <button class="tab-btn" data-tab="story" onclick="switchTab(this,'story')">📚 光學小故事</button>
+  <button class="tab-btn" data-tab="quiz" onclick="switchTab(this,'quiz')">🎯 素養測驗</button>
+  <button class="tab-btn" data-tab="qa" onclick="switchTab(this,'qa')">📖 專有名詞</button>
+</div>
+
+<!-- ===== TAB 1: 成像模擬 ===== -->
+<div id="tab-sim" class="tab-pane active">
+  <div class="sec-title">🕯️ 蠟燭成像模擬台</div>
+  <div class="sec-desc">拖曳滑桿，改變蠟燭與凸透鏡的距離，即時觀察成像變化！（本模擬焦距 f＝20 公分）</div>
+  <div class="card-shell">
+    <canvas id="simC" height="300"></canvas>
+    <div class="slider-row">
+      <label>🕯️ 物距</label>
+      <input type="range" id="slSim" min="4" max="90" value="75" oninput="updateSim()">
+      <div class="sval" id="sdVal">75 cm</div>
+    </div>
+  </div>
+  <div class="info-strip">
+    <strong id="imgLabel">倒立縮小的像</strong>
+    <span id="imgDesc"></span>
+  </div>
+
+  <div class="tbl-wrap" style="margin-top:28px;">
+    <div class="tbl-head">📋 凸透鏡成像規律對照表</div>
+    <table>
+      <thead><tr>
+        <th>物體位置</th><th>像的方向</th><th>像的大小</th><th>清晰度</th><th>像的種類</th><th>生活應用</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>物距 &gt; 2f（遠處）</td><td>倒立</td><td>縮小</td><td>✅ 清楚</td><td>實像</td><td>相機、人眼</td></tr>
+        <tr><td>物距 ＝ 2f</td><td>倒立</td><td>等大</td><td>✅ 清楚</td><td>實像</td><td>—</td></tr>
+        <tr><td>f &lt; 物距 &lt; 2f</td><td>倒立</td><td>放大</td><td>✅ 清楚</td><td>實像</td><td>投影機、幻燈機</td></tr>
+        <tr style="background:#fffde7"><td>物距 ＝ f（焦點）</td><td>—</td><td>—</td><td>❌ 模糊</td><td>—</td><td>聚光點火</td></tr>
+        <tr><td>物距 &lt; f（緊靠透鏡）</td><td>正立</td><td>放大</td><td>✅ 清楚</td><td>虛像</td><td>放大鏡、老花眼鏡</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== TAB 2: 光線路徑 ===== -->
+<div id="tab-ray" class="tab-pane">
+  <div class="sec-title">📐 光線折射路徑動畫</div>
+  <div class="sec-desc">調整物距，觀察三條標準光線如何通過凸透鏡折射，理解成像的幾何原理。</div>
+  <div class="card-shell">
+    <canvas id="rayC" height="380"></canvas>
+    <div class="slider-row">
+      <label>🕯️ 物距</label>
+      <input type="range" id="slRay" min="4" max="90" value="55" oninput="updateRay()">
+      <div class="sval" id="rdVal">55 cm</div>
+    </div>
+  </div>
+  <div class="info-strip">
+    <strong>三條標準光線說明</strong>
+    🔴 <b>平行光軸</b>：入射後折射通過右焦點 F'<br>
+    🟢 <b>通過左焦點 F</b>：入射後折射成平行光軸<br>
+    🔵 <b>通過光心 O</b>：方向不變，直線穿過透鏡<br>
+    <span style="color:#666;font-size:14px;">※ 三條光線的交點即為成像位置；虛像時用虛線延伸表示</span>
+  </div>
+</div>
+
+<!-- ===== TAB 2.5: 放大鏡模擬 ===== -->
+<div id="tab-mag" class="tab-pane">
+  <div class="sec-title">🔬 放大鏡模擬操作</div>
+  <div class="sec-desc">移動滑鼠（或手指拖曳）來操控放大鏡，探索自然生態海報！放大鏡下的文字與生物圖案都會放大，仔細看看每種生物的特徵。</div>
+  <div class="card-shell" style="padding:16px;">
+    <!-- 模式切換 -->
+    <div class="mag-mode-row">
+      <button class="mag-mode-btn on" id="mBtn1" onclick="setMagMode(1)">🔍 放大鏡模式</button>
+      <button class="mag-mode-btn"    id="mBtn2" onclick="setMagMode(2)">🖱️ 滾輪縮放模式</button>
+    </div>
+    <!-- Canvas -->
+    <canvas id="magC" style="cursor:none;display:block;width:100%;border-radius:10px;"></canvas>
+    <!-- 模式1 控制列 -->
+    <div id="magCtrl1" class="mag-ctrl-row">
+      <span style="font-size:16px;font-weight:700;color:#1a2b4a;">🔍 放大倍率：</span>
+      <input type="range" id="slMag" min="2" max="15" step="0.5" value="3" style="flex:1;min-width:120px;accent-color:#1565c0;" oninput="setMagPow(this.value)">
+      <span id="magPowLbl" style="font-size:20px;font-weight:800;color:#1565c0;min-width:52px;">3×</span>
+      <div class="mag-ctrl-hint">🖱️ 滑鼠移動操控放大鏡位置<br>📱 手機／平板：手指拖曳</div>
+    </div>
+    <!-- 模式2 控制列 -->
+    <div id="magCtrl2" class="mag-ctrl-row" style="display:none;">
+      <div class="mag-ctrl-hint" style="flex:1;">
+        🖱️ <b>移動滑鼠</b>控制放大鏡位置・<b>滾輪↑</b>放大 / <b>滾輪↓</b>縮小（2× ～ 15×）<br>
+        📱 手機／平板：<b>單指拖曳</b>移動放大鏡・<b>雙指縮放</b>改變倍率
+      </div>
+      <span style="font-size:22px;font-weight:800;color:#1565c0;min-width:60px;text-align:right;" id="m2ScaleLbl">1×</span>
+    </div>
+    <div style="font-size:14px;color:#7a8fad;margin-top:8px;">共 14 種生物，找找看！</div>
+  </div>
+</div>
+
+<!-- ===== TAB 3: 光學常識 ===== -->
+<div id="tab-know" class="tab-pane">
+  <div class="sec-title">💡 光學小常識</div>
+  <div class="sec-desc">點選左側主題，右側即顯示說明與示意圖。</div>
+  <div class="know-layout">
+    <div class="know-sidebar" id="knowSidebar"></div>
+    <div class="know-panel" id="knowPanel"></div>
+  </div>
+</div>
+
+<!-- ===== TAB 4: 光學小故事 ===== -->
+<div id="tab-story" class="tab-pane">
+  <div class="sec-title">📚 光學小故事</div>
+  <div class="sec-desc">六個真實的光學歷史故事，從科學家的發現到改變世界的發明，帶你穿越時空！</div>
+  <div class="know-layout">
+    <div class="know-sidebar" id="storySidebar"></div>
+    <div class="know-panel" id="storyPanel"></div>
+  </div>
+</div>
+
+<!-- ===== TAB 5: 素養測驗 ===== -->
+<div id="tab-quiz" class="tab-pane">
+  <div class="sec-title">🎯 素養導向測驗</div>
+  <div class="sec-desc">結合生活情境，每題只能選一次。選完後立即看解析，全部作答後可查看總成績！</div>
+  <div class="quiz-bar">
+    <span>📝 共 <b>8</b> 題選擇題</span>
+    <span id="scoreDis">已答對：<b>0</b> 題</span>
+  </div>
+  <div id="quizArea"></div>
+  <div class="quiz-actions">
+    <button class="btn-sec" onclick="resetQuiz()">🔄 重新作答</button>
+    <button class="btn-pri" onclick="showResult()">✅ 查看成績</button>
+  </div>
+  <div class="result-box" id="resBox">
+    <div class="r-score" id="resScore"></div>
+    <div class="r-msg" id="resMsg"></div>
+  </div>
+</div>
+
+<!-- ===== TAB 6: 專有名詞 Q&A ===== -->
+<div id="tab-qa" class="tab-pane">
+  <div class="sec-title">📖 專有名詞 Q&A</div>
+  <div class="sec-desc">點選左側名詞，右側即顯示定義、示意圖與生活連結。共 16 個關鍵詞彙。</div>
+  <div class="know-layout">
+    <div class="qa-panel-sb">
+      <div class="qa-sb-top">
+        <div class="qa-sb-inp">
+          <span>🔍</span>
+          <input type="text" placeholder="搜尋名詞或英文…" oninput="qaFilter(this.value)">
+        </div>
+        <div class="qa-sb-cats">
+          <button class="qa-sb-cat on" onclick="qaFilterCat('all',this)">全部</button>
+          <button class="qa-sb-cat" onclick="qaFilterCat('透鏡',this)">透鏡</button>
+          <button class="qa-sb-cat" onclick="qaFilterCat('距離',this)">距離</button>
+          <button class="qa-sb-cat" onclick="qaFilterCat('成像',this)">成像</button>
+          <button class="qa-sb-cat" onclick="qaFilterCat('光學',this)">光學</button>
+        </div>
+      </div>
+      <div class="qa-sb-list" id="qaSbList"></div>
+    </div>
+    <div class="know-panel" id="qaPanel"></div>
+  </div>
+</div>
+
+<script>
+// ─── TAB SWITCHING ─────────────────────────────────────────
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+  if (id === 'sim') { resizeSim(); updateSim(); }
+  if (id === 'ray') { resizeRay(); updateRay(); }
+  if (id === 'mag') { resizeMag(); }
+}
+
+// ─── SHARED CONSTANTS ──────────────────────────────────────
+const F = 20; // focal length cm
+
+function imgInfo(u) {
+  if (u > 2*F+1)  return {label:'倒立縮小的像（實像）',  color:'#1565c0', inv:true,  virt:false, desc:'物距大於2倍焦距，光線聚焦在另一側，形成倒立、縮小的實像，可投影在螢幕上。生活應用：相機、眼睛。'};
+  if (u >= 2*F-1) return {label:'倒立等大的像（實像）',  color:'#6a1b9a', inv:true,  virt:false, desc:'物距等於2倍焦距，形成倒立、等大的實像。此距離也稱為「等倍點」。'};
+  if (u > F+1)    return {label:'倒立放大的像（實像）',  color:'#00838f', inv:true,  virt:false, desc:'物距在1~2倍焦距之間，形成倒立、放大的實像。生活應用：投影機、幻燈機（底片須倒放）。'};
+  if (u >= F-2)   return {label:'模糊不清（接近焦點）',  color:'#e65100', inv:false, virt:false, desc:'物距接近焦距，光線折射後趨近平行，無法聚焦成清楚的像。此距離可讓凸透鏡聚光點火！'};
+  return           {label:'正立放大的像（虛像）',         color:'#2e7d32', inv:false, virt:true,  desc:'物距小於焦距，光線折射後發散，向後延伸交於同側，形成正立、放大的虛像。生活應用：放大鏡、老花眼鏡。'};
+}
+
+// ─── TAB 1: SIMULATION ─────────────────────────────────────
+const simCanvas = document.getElementById('simC');
+const simCtx    = simCanvas.getContext('2d');
+
+function resizeSim() {
+  const w = simCanvas.parentElement.clientWidth - 48;
+  simCanvas.width  = Math.max(w, 320);
+  simCanvas.height = 300;
+}
+
+function updateSim() {
+  const u = +document.getElementById('slSim').value;
+  document.getElementById('sdVal').textContent = u + ' cm';
+  const info = imgInfo(u);
+  const el = document.getElementById('imgLabel');
+  el.textContent = info.label; el.style.color = info.color;
+  document.getElementById('imgDesc').textContent = info.desc;
+  drawSim(u, info);
+}
+
+function drawSim(u, info) {
+  const c = simCtx, W = simCanvas.width, H = simCanvas.height;
+  c.clearRect(0,0,W,H);
+  c.fillStyle='#f7faff'; c.fillRect(0,0,W,H);
+
+  const sc   = Math.min((W*0.42)/F, 5);   // px per cm
+  const lx   = Math.round(W * 0.52);       // lens x
+  const ay   = Math.round(H * 0.55);       // axis y
+  const fPx  = F * sc;
+  const ch   = 60;                          // candle height px
+
+  // axis
+  dashed(c, 10, ay, W-10, ay, '#b0c4de', 1.5, [7,5]);
+
+  // 2F / F markers
+  [[2,'2F'],[1,'F']].forEach(([m,lb]) => {
+    [-1,1].forEach(s => {
+      const mx = lx + s*m*fPx;
+      if (mx < 10 || mx > W-10) return;
+      c.beginPath(); c.arc(mx,ay,s===1?5:4,0,Math.PI*2);
+      c.fillStyle = m===1?'#f59e0b':'#90a4ae'; c.fill();
+      c.fillStyle = m===1?'#b45309':'#546e7a';
+      c.font = `bold ${m===1?14:12}px sans-serif`;
+      c.fillText(lb, mx-(lb.length>1?12:5), ay+22);
+    });
+  });
+
+  // lens
+  drawLens(c, lx, ay, H*0.7);
+
+  // object (candle)
+  const ox = lx - u*sc;
+  if (ox > 8) {
+    drawCandle(c, ox, ay, ch, false, 1);
+    c.fillStyle='#92400e'; c.font='bold 13px sans-serif';
+    c.fillText('物體', ox-22, ay-ch-22);
+    // distance arrow
+    arrowLine(c, ox, ay+38, lx, ay+38, '#90a4ae', 1);
+    c.fillStyle='#546e7a'; c.font='13px sans-serif';
+    const mid = (ox+lx)/2;
+    c.fillText('物距 '+u+' cm', mid-36, ay+56);
+  }
+
+  // image
+  if (!info.virt && u > F+2 && u < F-2 || (!info.virt && Math.abs(u-F)>2 && u>F)) {
+    // real image
+    const v = F*u/(u-F);
+    const ix = lx + v*sc;
+    const ih = ch*(v/u);
+    if (ix > lx+4 && ix < W-8) {
+      drawCandle(c, ix, ay, Math.min(ih,H*0.38), true, 0.6);
+      c.fillStyle='#0277bd'; c.font='13px sans-serif';
+      c.fillText('像 ('+Math.round(v)+' cm)', ix-22, ay+(info.inv?Math.min(ih,H*0.38)+20:-20));
+    }
+  } else if (info.virt) {
+    // virtual image same side
+    const v  = F*u/(u-F); // negative
+    const ix = lx + v*sc; // left of lens
+    const ih = Math.abs(ch*(v/u));
+    if (ix > 8 && ix < lx-4) {
+      drawCandle(c, ix, ay, Math.min(ih, H*0.45), false, 0.45, true);
+      c.fillStyle='#2e7d32'; c.font='13px sans-serif';
+      c.fillText('虛像（正立放大）', ix-44, ay-Math.min(ih,H*0.45)-16);
+    }
+  }
+}
+
+// ─── TAB 2: RAY DIAGRAM ────────────────────────────────────
+const rayCanvas = document.getElementById('rayC');
+const rayCtx    = rayCanvas.getContext('2d');
+
+function resizeRay() {
+  const w = rayCanvas.parentElement.clientWidth - 48;
+  rayCanvas.width  = Math.max(w, 320);
+  rayCanvas.height = 380;
+}
+
+function updateRay() {
+  const u = +document.getElementById('slRay').value;
+  document.getElementById('rdVal').textContent = u + ' cm';
+  drawRay(u);
+}
+
+function drawRay(u) {
+  const c = rayCtx, W = rayCanvas.width, H = rayCanvas.height;
+  c.clearRect(0,0,W,H);
+  c.fillStyle='#f5f8ff'; c.fillRect(0,0,W,H);
+
+  // grid
+  c.strokeStyle='#e0eaf8'; c.lineWidth=1;
+  for(let x=0;x<W;x+=50){line(c,x,0,x,H);}
+  for(let y=0;y<H;y+=50){line(c,0,y,W,y);}
+
+  const sc  = Math.min((W*0.40)/F, 5.5);
+  const lx  = Math.round(W*0.52);
+  const ay  = Math.round(H*0.50);
+  const fPx = F*sc;
+  const oh  = 55;
+
+  // axis
+  dashed(c,10,ay,W-10,ay,'#90a4ae',2,[10,5]);
+
+  // F and 2F dots + labels
+  [[-2,'2F','#90a4ae'],[-1,'F','#f59e0b'],[1,'F','#f59e0b'],[2,'2F','#90a4ae']].forEach(([m,lb,col])=>{
+    const mx=lx+m*fPx;
+    if(mx<10||mx>W-10)return;
+    c.beginPath();c.arc(mx,ay,m===1||m===-1?5:4,0,Math.PI*2);
+    c.fillStyle=col;c.fill();
+    c.fillStyle=m===1||m===-1?'#b45309':'#546e7a';
+    c.font=`bold ${m===1||m===-1?14:12}px sans-serif`;
+    c.fillText(lb,mx-(lb.length>1?12:4),ay+22);
+  });
+
+  // lens
+  drawLens(c, lx, ay, H*0.75);
+
+  // object
+  const ox = lx - u*sc;
+  const oy = ay - oh;
+  if (ox>8) {
+    arrowLine(c, ox,ay, ox,oy, '#f59e0b',3);
+    c.fillStyle='#f97316';
+    c.beginPath();c.ellipse(ox,oy-9,5,9,0,0,Math.PI*2);c.fill();
+    c.fillStyle='#92400e';c.font='bold 14px sans-serif';c.fillText('物',ox-8,oy-24);
+  }
+
+  const real = u > F+2;
+
+  if (real) {
+    const v  = F*u/(u-F);
+    const ix = lx + v*sc;
+    const iy = ay + oh*(v/u); // inverted → below axis
+
+    // ─ Ray 1 (red): parallel to axis → right focal pt
+    const r1x=lx, r1y=oy; // hits lens at tip height
+    const rfx=lx+fPx, rfy=ay;
+    c.strokeStyle='#ef4444';c.lineWidth=2.5;
+    line(c,ox,oy,r1x,r1y);
+    // after lens towards focal pt direction extended to ix
+    const slp1=(rfy-r1y)/(rfx-r1x);
+    if(ix>lx+4&&ix<W-8){
+      line(c,r1x,r1y,ix,iy);
+      arrowHead(c,ix,iy,'#ef4444',Math.atan2(iy-r1y,ix-r1x));
+    } else {
+      line(c,r1x,r1y,W-8,r1y+slp1*(W-8-r1x));
+    }
+
+    // ─ Ray 2 (green): through left F → parallel after lens
+    const lfx=lx-fPx;
+    // direction from oy to lens: slope = (atLensY - oy)/(lx - ox)
+    // ray from (ox,oy) passes through (lfx,ay) extended to (lx,?)
+    const slp2=(ay-oy)/(lfx-ox);
+    const r2y=oy+slp2*(lx-ox);
+    c.strokeStyle='#16a34a';c.lineWidth=2.5;
+    line(c,ox,oy,lx,r2y);
+    // after lens: horizontal (parallel to axis)
+    if(ix>lx+4&&ix<W-8){
+      line(c,lx,r2y,ix,r2y);
+      arrowHead(c,ix,r2y,'#16a34a',0);
+    } else {
+      line(c,lx,r2y,W-8,r2y);
+    }
+
+    // ─ Ray 3 (blue): through optical centre O
+    const slp3=(ay-oy)/(lx-ox);
+    c.strokeStyle='#1565c0';c.lineWidth=2.5;
+    line(c,ox,oy,lx,ay);
+    if(ix>lx+4&&ix<W-8){
+      line(c,lx,ay,ix,iy);
+      arrowHead(c,ix,iy,'#1565c0',Math.atan2(iy-ay,ix-lx));
+    } else {
+      const ex=W-8;
+      line(c,lx,ay,ex,ay+slp3*(ex-lx));
+    }
+
+    // image
+    if(ix>lx+4&&ix<W-8){
+      arrowLine(c,ix,ay,ix,iy,'#2196f3',3);
+      c.beginPath();c.arc(ix,iy,6,0,Math.PI*2);
+      c.fillStyle='#dc2626';c.fill();
+      c.fillStyle='#0d47a1';c.font='bold 14px sans-serif';
+      c.fillText('像',ix+8,ay+(iy-ay)/2);
+    }
+
+  } else {
+    // u < f → virtual image
+    const v  = F*u/(u-F); // negative
+    const ix = lx + v*sc; // left of lens
+    const iy = ay - oh*Math.abs(v/u); // upright, bigger
+
+    // ─ Ray 1 (red): parallel → diverges as if from right F
+    const rfx=lx+fPx;
+    const r1y=oy;
+    c.strokeStyle='#ef4444';c.lineWidth=2.5;
+    line(c,ox,r1y,lx,r1y);
+    // after lens diverges as if coming from rfx,ay
+    const slp1=(r1y-ay)/(lx-rfx);
+    line(c,lx,r1y,W-8,r1y+slp1*(W-8-lx));
+    // virtual back-trace (dashed)
+    dashed(c,lx,r1y,Math.max(10,ix),iy,'#ef4444',1.5,[5,4]);
+
+    // ─ Ray 3 (blue): through optical centre
+    const slp3=(ay-oy)/(lx-ox);
+    c.strokeStyle='#1565c0';c.lineWidth=2.5;
+    line(c,ox,oy,lx,ay);
+    line(c,lx,ay,W-8,ay+slp3*(W-8-lx));
+    dashed(c,lx,ay,Math.max(10,ix),iy,'#1565c0',1.5,[5,4]);
+
+    // virtual image
+    if(ix>8&&ix<lx-2){
+      c.setLineDash([6,4]);
+      c.strokeStyle='#2e7d32';c.lineWidth=2;
+      c.beginPath();c.moveTo(ix,ay);c.lineTo(ix,iy);c.stroke();
+      c.setLineDash([]);
+      c.fillStyle='#1b5e20';c.font='bold 14px sans-serif';
+      c.fillText('虛像',ix-38,iy-12);
+    }
+  }
+
+  // legend
+  [['#ef4444','平行主軸的光線'],['#16a34a','通過焦點的光線'],['#1565c0','通過光心的光線']].forEach(([col,txt],i)=>{
+    c.strokeStyle=col;c.lineWidth=2.5;
+    line(c,14,16+i*22,46,16+i*22);
+    c.fillStyle='#1a2b4a';c.font='13px sans-serif';
+    c.fillText(txt,52,22+i*22);
+  });
+
+  // dist labels
+  if(ox>8){
+    c.fillStyle='#546e7a';c.font='12px sans-serif';
+    c.fillText('←  物距 '+u+' cm  →',(ox+lx)/2-40,ay+36);
+  }
+}
+
+// ─── DRAWING HELPERS ───────────────────────────────────────
+function line(c,x1,y1,x2,y2){c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();}
+
+function dashed(c,x1,y1,x2,y2,col,lw,pat){
+  c.save();c.strokeStyle=col;c.lineWidth=lw;c.setLineDash(pat);
+  line(c,x1,y1,x2,y2);c.restore();
+}
+
+function arrowHead(c,x,y,col,ang){
+  c.fillStyle=col;
+  c.beginPath();
+  c.moveTo(x,y);
+  c.lineTo(x-11*Math.cos(ang-.38),y-11*Math.sin(ang-.38));
+  c.lineTo(x-11*Math.cos(ang+.38),y-11*Math.sin(ang+.38));
+  c.closePath();c.fill();
+}
+
+function arrowLine(c,x1,y1,x2,y2,col,lw){
+  c.strokeStyle=col;c.lineWidth=lw;
+  line(c,x1,y1,x2,y2);
+  arrowHead(c,x2,y2,col,Math.atan2(y2-y1,x2-x1));
+}
+
+function drawLens(c,lx,ay,lh){
+  lh=lh||140;
+  c.strokeStyle='#1565c0';c.lineWidth=5;
+  c.beginPath();c.moveTo(lx,ay-lh/2);c.lineTo(lx,ay+lh/2);c.stroke();
+  c.fillStyle='#1565c0';
+  [[lx,ay-lh/2,lx-8,ay-lh/2+14,lx+8,ay-lh/2+14],
+   [lx,ay+lh/2,lx-8,ay+lh/2-14,lx+8,ay+lh/2-14]].forEach(pts=>{
+    c.beginPath();c.moveTo(pts[0],pts[1]);c.lineTo(pts[2],pts[3]);c.lineTo(pts[4],pts[5]);c.closePath();c.fill();
+  });
+  c.fillStyle='#1565c0';c.font='bold 13px sans-serif';
+  c.fillText('凸透鏡',lx+8,ay-lh/2+10);
+}
+
+function drawCandle(c,cx,ay,ch,inverted,alpha,dashed_){
+  c.save();c.globalAlpha=alpha;
+  if(dashed_){c.setLineDash([5,3]);}
+  const top= inverted? ay : ay-ch;
+  const bot= inverted? ay+ch : ay;
+  c.fillStyle='#fef9c3';c.strokeStyle='#f59e0b';c.lineWidth=2;
+  c.fillRect(cx-7,top,14,ch);c.strokeRect(cx-7,top,14,ch);
+  // flame
+  const fy = inverted? bot+10 : top-10;
+  c.fillStyle='rgba(249,115,22,0.85)';
+  c.beginPath();c.ellipse(cx,fy,5,10,0,0,Math.PI*2);c.fill();
+  c.fillStyle='rgba(254,240,138,0.9)';
+  c.beginPath();c.ellipse(cx,fy,2.5,6,0,0,Math.PI*2);c.fill();
+  c.restore();
+}
+
+// ─── TAB 3: KNOWLEDGE SIDEBAR ──────────────────────────────
+const KNOW=[
+  {
+    icon:'🔍', title:'放大鏡的秘密',
+    text:'放大鏡是一片<b>凸透鏡</b>（中間厚、邊緣薄）。當物體靠近放大鏡，<b>物距小於焦距</b>時，光線折射後無法聚成實像，而是在物體同側形成<b>正立、放大的虛像</b>。你看到的「放大效果」就是這個虛像！虛像只能用眼睛直接觀察，<b>無法投影在螢幕上</b>。',
+    tip:'💡 使用放大鏡時，鏡面要靠近物體，眼睛從另一側看，物距需小於焦距才能看到清楚的放大虛像。',
+    svg:`<svg viewBox="0 0 520 205" font-family="sans-serif" font-size="12">
+  <line x1="10" y1="105" x2="510" y2="105" stroke="#c0d4ee" stroke-width="1.5" stroke-dasharray="7,4"/>
+  <circle cx="200" cy="105" r="5" fill="#f59e0b"/>
+  <text x="193" y="122" fill="#b45309" font-weight="bold">F</text>
+  <line x1="290" y1="25" x2="290" y2="185" stroke="#1565c0" stroke-width="5"/>
+  <polygon points="290,25 283,39 297,39" fill="#1565c0"/>
+  <polygon points="290,185 283,171 297,171" fill="#1565c0"/>
+  <text x="296" y="20" fill="#1565c0" font-weight="bold">凸透鏡</text>
+  <line x1="250" y1="105" x2="250" y2="62" stroke="#f59e0b" stroke-width="3"/>
+  <polygon points="250,62 244,74 256,74" fill="#f59e0b"/>
+  <text x="228" y="55" fill="#92400e" font-weight="bold">物體</text>
+  <text x="258" y="120" fill="#92400e">u &lt; f</text>
+  <line x1="108" y1="105" x2="108" y2="30" stroke="#2e7d32" stroke-width="2.5" stroke-dasharray="5,3"/>
+  <polygon points="108,30 102,42 114,42" fill="#2e7d32" fill-opacity="0.7"/>
+  <text x="10" y="24" fill="#2e7d32" font-weight="bold">虛像（正立放大）</text>
+  <line x1="250" y1="62" x2="290" y2="62" stroke="#ef4444" stroke-width="2"/>
+  <line x1="290" y1="62" x2="440" y2="30" stroke="#ef4444" stroke-width="2"/>
+  <line x1="290" y1="62" x2="108" y2="30" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6"/>
+  <line x1="250" y1="62" x2="290" y2="105" stroke="#1565c0" stroke-width="2"/>
+  <line x1="290" y1="105" x2="440" y2="148" stroke="#1565c0" stroke-width="2"/>
+  <line x1="290" y1="105" x2="108" y2="30" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6"/>
+  <ellipse cx="472" cy="105" rx="30" ry="20" fill="#fff8e1" stroke="#f59e0b" stroke-width="2"/>
+  <circle cx="472" cy="105" r="10" fill="#42a5f5" opacity="0.8"/>
+  <circle cx="474" cy="103" r="5" fill="#1a2b4a"/>
+  <text x="455" y="140" fill="#92400e">眼睛</text>
+  <text x="60" y="190" fill="#546e7a">物距 u &lt; f → 正立放大虛像（同側，無法投影在螢幕）</text>
+</svg>`
+  },
+  {
+    icon:'📷', title:'相機如何成像',
+    text:'相機鏡頭是一片<b>凸透鏡</b>。景物在遠處，<b>物距大於 2 倍焦距</b>，光線通過鏡頭後在感光元件（底片）上形成<b>倒立、縮小的實像</b>。手機軟體再自動把影像轉正，所以你看到的照片才是正的！',
+    tip:'💡 動物的眼睛也是同樣原理——視網膜上的像其實是倒立的，大腦幫我們自動「翻轉」處理。',
+    svg:`<svg viewBox="0 0 520 195" font-family="sans-serif" font-size="12">
+  <line x1="10" y1="98" x2="510" y2="98" stroke="#c0d4ee" stroke-width="1.5" stroke-dasharray="7,4"/>
+  <rect x="44" y="52" width="14" height="46" fill="#795548"/>
+  <polygon points="51,18 28,62 74,62" fill="#4caf50"/>
+  <polygon points="51,32 32,65 70,65" fill="#388e3c"/>
+  <text x="36" y="112" fill="#2e7d32" font-weight="bold">景物</text>
+  <line x1="260" y1="25" x2="260" y2="171" stroke="#1565c0" stroke-width="5"/>
+  <polygon points="260,25 253,39 267,39" fill="#1565c0"/>
+  <polygon points="260,171 253,157 267,157" fill="#1565c0"/>
+  <text x="265" y="20" fill="#1565c0" font-weight="bold">鏡頭（凸透鏡）</text>
+  <circle cx="200" cy="98" r="4" fill="#f59e0b"/>
+  <text x="195" y="113" fill="#b45309" font-weight="bold">F</text>
+  <circle cx="320" cy="98" r="4" fill="#f59e0b"/>
+  <text x="315" y="113" fill="#b45309" font-weight="bold">F</text>
+  <rect x="345" y="52" width="130" height="92" rx="8" fill="#37474f" stroke="#546e7a" stroke-width="2"/>
+  <rect x="353" y="60" width="114" height="76" rx="4" fill="#263238"/>
+  <text x="362" y="78" fill="#90caf9">感光元件</text>
+  <text x="362" y="93" fill="#ef9a9a">（倒立縮小實像）</text>
+  <rect x="446" y="80" width="8" height="36" fill="#795548"/>
+  <polygon points="450,116 438,95 462,95" fill="#4caf50"/>
+  <circle cx="475" cy="50" r="8" fill="#78909c"/>
+  <line x1="51" y1="26" x2="260" y2="78" stroke="#ef4444" stroke-width="1.5" opacity="0.75"/>
+  <line x1="260" y1="78" x2="450" y2="116" stroke="#ef4444" stroke-width="1.5" opacity="0.75"/>
+  <line x1="51" y1="98" x2="260" y2="98" stroke="#1565c0" stroke-width="1.5" opacity="0.75"/>
+  <line x1="260" y1="98" x2="450" y2="98" stroke="#1565c0" stroke-width="1.5" opacity="0.75"/>
+  <text x="60" y="180" fill="#546e7a">物距 &gt; 2f → 倒立縮小實像（可投影在感光元件）</text>
+</svg>`
+  },
+  {
+    icon:'🎥', title:'投影機為什麼倒放',
+    text:'投影機把底片放在鏡頭的 <b>1 到 2 倍焦距之間</b>，因此在螢幕上形成<b>倒立、放大的實像</b>。螢幕上的像是上下左右翻轉的，所以放入投影機的底片必須<b>倒著放</b>，投射出來才是正確的畫面！',
+    tip:'💡 電影院的膠卷底片、幻燈機的投影片，都要倒著插入，原理和投影機完全相同。',
+    svg:`<svg viewBox="0 0 520 200" font-family="sans-serif" font-size="12">
+  <line x1="10" y1="100" x2="510" y2="100" stroke="#c0d4ee" stroke-width="1.5" stroke-dasharray="7,4"/>
+  <rect x="10" y="58" width="110" height="84" rx="8" fill="#37474f" stroke="#546e7a" stroke-width="2"/>
+  <text x="22" y="78" fill="#90caf9" font-weight="bold">投影機</text>
+  <text x="20" y="105" fill="#ef9a9a">底片（倒放）</text>
+  <line x1="65" y1="115" x2="65" y2="88" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="3,2"/>
+  <polygon points="65,115 60,103 70,103" fill="#ef4444"/>
+  <line x1="200" y1="25" x2="200" y2="175" stroke="#1565c0" stroke-width="5"/>
+  <polygon points="200,25 193,39 207,39" fill="#1565c0"/>
+  <polygon points="200,175 193,161 207,161" fill="#1565c0"/>
+  <text x="206" y="20" fill="#1565c0" font-weight="bold">鏡頭</text>
+  <circle cx="140" cy="100" r="4" fill="#f59e0b"/>
+  <text x="135" y="116" fill="#b45309" font-weight="bold">F</text>
+  <circle cx="260" cy="100" r="4" fill="#f59e0b"/>
+  <text x="255" y="116" fill="#b45309" font-weight="bold">F</text>
+  <rect x="445" y="20" width="12" height="160" rx="3" fill="#eceff1" stroke="#90a4ae" stroke-width="2"/>
+  <text x="426" y="195" fill="#546e7a" font-weight="bold">螢幕</text>
+  <line x1="451" y1="100" x2="451" y2="40" stroke="#2e7d32" stroke-width="3"/>
+  <polygon points="451,40 445,52 457,52" fill="#2e7d32"/>
+  <text x="462" y="55" fill="#2e7d32" font-weight="bold">正立放大</text>
+  <text x="462" y="69" fill="#2e7d32">實像✓</text>
+  <line x1="65" y1="88" x2="200" y2="88" stroke="#f59e0b" stroke-width="1.8" opacity="0.85"/>
+  <line x1="200" y1="88" x2="451" y2="40" stroke="#f59e0b" stroke-width="1.8" opacity="0.85"/>
+  <line x1="65" y1="115" x2="200" y2="100" stroke="#42a5f5" stroke-width="1.8" opacity="0.85"/>
+  <line x1="200" y1="100" x2="451" y2="100" stroke="#42a5f5" stroke-width="1.8" opacity="0.85"/>
+  <text x="60" y="182" fill="#546e7a">f &lt; 物距 &lt; 2f → 倒立放大實像 → 底片必須倒放</text>
+</svg>`
+  },
+  {
+    icon:'👁️', title:'眼睛裡的透鏡',
+    text:'眼睛裡的<b>水晶體</b>就是一片凸透鏡！它能自動調節厚薄來改變焦距，讓遠近物體都清楚成像在視網膜上。<b>近視</b>是眼軸過長或水晶體太厚，像落在視網膜前方；<b>遠視（老花）</b>是眼軸過短，像落在視網膜後方。',
+    tip:'💡 視網膜上的像其實是倒立的，大腦的視覺中樞會自動幫我們翻轉，所以我們才看到正立的世界！',
+    svg:`<svg viewBox="0 0 520 195" font-family="sans-serif" font-size="12">
+  <text x="14" y="20" fill="#1565c0" font-weight="bold" font-size="13">正常眼的成像</text>
+  <ellipse cx="310" cy="75" rx="150" ry="58" fill="#fff8e1" stroke="#f59e0b" stroke-width="2.5"/>
+  <ellipse cx="325" cy="75" rx="132" ry="48" fill="#e3f2fd" opacity="0.55"/>
+  <path d="M162,75 Q150,55 162,35" stroke="#90caf9" stroke-width="3" fill="none"/>
+  <ellipse cx="200" cy="75" rx="14" ry="30" fill="#bbdefb" stroke="#1565c0" stroke-width="2"/>
+  <text x="178" y="118" fill="#1565c0">水晶體</text>
+  <path d="M448,30 Q468,75 448,120" stroke="#ef4444" stroke-width="4" fill="none"/>
+  <text x="453" y="80" fill="#c62828" font-weight="bold">視網膜</text>
+  <line x1="452" y1="75" x2="452" y2="50" stroke="#2e7d32" stroke-width="2.5" stroke-dasharray="4,2"/>
+  <polygon points="452,50 446,62 458,62" fill="#2e7d32" fill-opacity="0.8"/>
+  <text x="462" y="52" fill="#2e7d32">倒立像</text>
+  <circle cx="176" cy="75" r="13" fill="#1a2b4a"/>
+  <circle cx="176" cy="75" r="5" fill="#000"/>
+  <circle cx="173" cy="72" r="2" fill="#fff" opacity="0.7"/>
+  <line x1="14" y1="50" x2="176" y2="65" stroke="#fdd835" stroke-width="1.8" opacity="0.85"/>
+  <line x1="14" y1="100" x2="176" y2="85" stroke="#fdd835" stroke-width="1.8" opacity="0.85"/>
+  <text x="20" y="40" fill="#92400e">物體</text>
+  <line x1="0" y1="142" x2="520" y2="142" stroke="#e0eaf8" stroke-width="1.5"/>
+  <text x="14" y="162" fill="#546e7a">物體發出光 → 水晶體折射 → 倒立實像落在視網膜</text>
+  <text x="14" y="180" fill="#1565c0" font-weight="bold">→ 大腦翻轉處理 → 我們看到正立的世界 ✓</text>
+</svg>`
+  },
+  {
+    icon:'🔥', title:'放大鏡點火',
+    text:'把放大鏡對著太陽，<b>調整高度使地面光點最小最亮</b>，這個亮點就在凸透鏡的<b>焦點</b>位置。太陽的平行光線全部匯聚在焦點上，能量極度集中，溫度可超過數百度，足以點燃紙張。這就是<b>凸透鏡聚光</b>最直觀的應用！',
+    tip:'⚠️ 在戶外點火請注意安全！太陽光聚焦產生的高溫非常危險，切勿對準人體或不安全的易燃物品。',
+    svg:`<svg viewBox="0 0 520 195" font-family="sans-serif" font-size="12">
+  <circle cx="46" cy="98" r="30" fill="#fdd835" stroke="#f9a825" stroke-width="2"/>
+  <g stroke="#f9a825" stroke-width="2">
+    <line x1="18" y1="98" x2="6"  y2="98"/>
+    <line x1="24" y1="76" x2="16" y2="66"/>
+    <line x1="46" y1="66" x2="46" y2="54"/>
+    <line x1="68" y1="76" x2="76" y2="66"/>
+    <line x1="74" y1="98" x2="86" y2="98"/>
+    <line x1="68" y1="120" x2="76" y2="130"/>
+    <line x1="46" y1="130" x2="46" y2="142"/>
+    <line x1="24" y1="120" x2="16" y2="130"/>
+  </g>
+  <text x="24" y="165" fill="#f9a825" font-weight="bold">太陽</text>
+  <g stroke="#fdd835" stroke-width="2.2" opacity="0.9">
+    <line x1="86" y1="65"  x2="235" y2="65"/>
+    <line x1="86" y1="82"  x2="235" y2="82"/>
+    <line x1="86" y1="98"  x2="235" y2="98"/>
+    <line x1="86" y1="114" x2="235" y2="114"/>
+    <line x1="86" y1="131" x2="235" y2="131"/>
+  </g>
+  <text x="100" y="158" fill="#f9a825">平行光線</text>
+  <line x1="235" y1="22" x2="235" y2="174" stroke="#1565c0" stroke-width="6"/>
+  <polygon points="235,22 228,36 242,36" fill="#1565c0"/>
+  <polygon points="235,174 228,160 242,160" fill="#1565c0"/>
+  <text x="242" y="18" fill="#1565c0" font-weight="bold">凸透鏡</text>
+  <g stroke="#f97316" stroke-width="2.2" opacity="0.95">
+    <line x1="235" y1="65"  x2="345" y2="98"/>
+    <line x1="235" y1="82"  x2="345" y2="98"/>
+    <line x1="235" y1="98"  x2="345" y2="98"/>
+    <line x1="235" y1="114" x2="345" y2="98"/>
+    <line x1="235" y1="131" x2="345" y2="98"/>
+  </g>
+  <circle cx="345" cy="98" r="7" fill="#ef4444"/>
+  <text x="335" y="88" fill="#b71c1c" font-weight="bold">焦點 F</text>
+  <ellipse cx="345" cy="124" rx="18" ry="8" fill="#ff8f00" opacity="0.45"/>
+  <path d="M335,126 Q338,106 345,98 Q352,106 355,126 Z" fill="#ff6f00"/>
+  <path d="M338,124 Q341,110 345,102 Q349,110 352,124 Z" fill="#fdd835"/>
+  <text x="360" y="118" fill="#b71c1c" font-weight="bold">高溫點火！</text>
+  <rect x="328" y="126" width="34" height="13" rx="2" fill="#ffe082" stroke="#f9a825" stroke-width="1.5"/>
+  <text x="314" y="155" fill="#546e7a">紙張放在焦點</text>
+  <line x1="235" y1="168" x2="345" y2="168" stroke="#90a4ae" stroke-width="1.5"/>
+  <line x1="235" y1="162" x2="235" y2="174" stroke="#90a4ae" stroke-width="1.5"/>
+  <line x1="345" y1="162" x2="345" y2="174" stroke="#90a4ae" stroke-width="1.5"/>
+  <text x="268" y="183" fill="#546e7a">焦距 f</text>
+</svg>`
+  },
+  {
+    icon:'👓', title:'近視 vs 老花眼鏡',
+    text:'<b>近視眼鏡</b>用<b>凹透鏡</b>（中間薄、邊緣厚），讓平行光線先<b>發散</b>，使光線在較後方聚焦，把原本落在視網膜前的像往後移。<b>老花（遠視）眼鏡</b>用<b>凸透鏡</b>（中間厚、邊緣薄），讓光線先<b>會聚</b>，把原本落在視網膜後的像往前移。兩者目的都是讓像精準落在視網膜上。',
+    tip:'💡 口訣：近視配凹鏡（散光）、老花配凸鏡（聚光）。凸透鏡讓光靠攏，凹透鏡讓光散開。',
+    svg:`<svg viewBox="0 0 520 200" font-family="sans-serif" font-size="12">
+  <rect x="0" y="0" width="520" height="100" fill="#fff5f5"/>
+  <text x="14" y="18" fill="#c62828" font-weight="bold" font-size="13">近視（配戴凹透鏡）</text>
+  <path d="M172,18 Q162,50 172,82" fill="#ffcdd2" stroke="#ef9a9a" stroke-width="1.5"/>
+  <path d="M180,18 Q190,50 180,82" fill="#ffcdd2" stroke="#ef9a9a" stroke-width="1.5"/>
+  <line x1="176" y1="18" x2="176" y2="82" stroke="#c62828" stroke-width="4"/>
+  <text x="158" y="96" fill="#c62828">凹透鏡</text>
+  <g stroke="#fdd835" stroke-width="2" opacity="0.9">
+    <line x1="55" y1="32" x2="176" y2="32"/>
+    <line x1="55" y1="50" x2="176" y2="50"/>
+    <line x1="55" y1="68" x2="176" y2="68"/>
+  </g>
+  <line x1="176" y1="32" x2="360" y2="18" stroke="#f97316" stroke-width="1.8" opacity="0.85"/>
+  <line x1="176" y1="50" x2="360" y2="50" stroke="#f97316" stroke-width="1.8" opacity="0.85"/>
+  <line x1="176" y1="68" x2="360" y2="82" stroke="#f97316" stroke-width="1.8" opacity="0.85"/>
+  <ellipse cx="420" cy="50" rx="80" ry="40" fill="#fff8e1" stroke="#f59e0b" stroke-width="2"/>
+  <path d="M488,18 Q506,50 488,82" stroke="#ef4444" stroke-width="4" fill="none"/>
+  <circle cx="460" cy="50" r="5" fill="#1565c0"/>
+  <text x="438" y="40" fill="#1565c0">像落在</text>
+  <text x="432" y="54" fill="#1565c0">視網膜前✗</text>
+  <circle cx="342" cy="50" r="11" fill="#1a2b4a"/>
+  <circle cx="342" cy="50" r="5" fill="#000"/>
+  <rect x="0" y="100" width="520" height="100" fill="#f1f8e9"/>
+  <text x="14" y="118" fill="#2e7d32" font-weight="bold" font-size="13">老花／遠視（配戴凸透鏡）</text>
+  <path d="M172,118 Q184,148 172,178" fill="#c8e6c9" stroke="#a5d6a7" stroke-width="1.5"/>
+  <path d="M180,118 Q168,148 180,178" fill="#c8e6c9" stroke="#a5d6a7" stroke-width="1.5"/>
+  <line x1="176" y1="118" x2="176" y2="178" stroke="#2e7d32" stroke-width="4"/>
+  <text x="158" y="195" fill="#2e7d32">凸透鏡</text>
+  <g stroke="#fdd835" stroke-width="2" opacity="0.9">
+    <line x1="55" y1="132" x2="176" y2="132"/>
+    <line x1="55" y1="150" x2="176" y2="150"/>
+    <line x1="55" y1="168" x2="176" y2="168"/>
+  </g>
+  <line x1="176" y1="132" x2="490" y2="150" stroke="#4caf50" stroke-width="1.8" opacity="0.85"/>
+  <line x1="176" y1="150" x2="490" y2="150" stroke="#4caf50" stroke-width="1.8" opacity="0.85"/>
+  <line x1="176" y1="168" x2="490" y2="150" stroke="#4caf50" stroke-width="1.8" opacity="0.85"/>
+  <ellipse cx="420" cy="150" rx="80" ry="40" fill="#fff8e1" stroke="#f59e0b" stroke-width="2"/>
+  <path d="M488,118 Q506,150 488,182" stroke="#ef4444" stroke-width="4" fill="none"/>
+  <circle cx="490" cy="150" r="5" fill="#2e7d32"/>
+  <text x="452" y="140" fill="#2e7d32">像落在</text>
+  <text x="448" y="154" fill="#2e7d32">視網膜上✓</text>
+  <circle cx="342" cy="150" r="11" fill="#1a2b4a"/>
+  <circle cx="342" cy="150" r="5" fill="#000"/>
+</svg>`
+  }
+];
+
+let knowActive=0;
+
+function buildKnow(){
+  const sb=document.getElementById('knowSidebar');
+  sb.innerHTML=KNOW.map((k,i)=>`
+    <div class="know-si${i===0?' on':''}" onclick="selectKnow(${i})">
+      <span class="si-icon">${k.icon}</span>
+      <span class="si-txt">${k.title}</span>
+    </div>`).join('');
+  renderKnowPanel();
+}
+
+function selectKnow(i){
+  knowActive=i;
+  document.querySelectorAll('.know-si').forEach((el,j)=>el.classList.toggle('on',j===i));
+  renderKnowPanel();
+}
+
+function renderKnowPanel(){
+  const k=KNOW[knowActive];
+  document.getElementById('knowPanel').innerHTML=`
+    <div class="kp-head">${k.icon} ${k.title}</div>
+    <div class="kp-text">${k.text}</div>
+    <div class="kp-svg">${k.svg}</div>
+    <div class="kp-tip">${k.tip}</div>`;
+}
+
+// ─── TAB 4: OPTICAL STORIES ────────────────────────────────
+const STORIES=[
+  {
+    icon:'🍎', title:'牛頓的稜鏡實驗',year:'1666年',
+    text:'1666 年，英國科學家<b>艾薩克・牛頓（Isaac Newton）</b>把一個房間弄黑，只留一個小孔讓陽光射入。他把一塊三角形玻璃稜鏡放在光線前方，驚奇地發現白色陽光竟然分裂成<b>七種顏色的彩虹光帶</b>——紅、橙、黃、綠、藍、靛、紫。<br><br>牛頓進一步用第二塊稜鏡把七色光重新合併，又變回白光。這個實驗證明了：<b>白光不是純淨的，而是由各種顏色的光混合而成的。</b>不同顏色的光通過玻璃時彎折的角度不同（折射率不同），所以才會分開。<br><br>這個發現奠定了現代色彩光學的基礎，也解釋了彩虹為什麼是七色的！',
+    tip:'🌈 小知識：彩虹就是自然界的「大稜鏡」——雨滴讓陽光折射和反射，分解出七色光帶。',
+    src:'Newton, I. (1704). <i>Opticks: Or, A Treatise of the Reflexions, Refractions, Inflexions and Colours of Light.</i> Royal Society, London.',
+    svg:`<svg viewBox="0 0 520 200" font-family="sans-serif" font-size="12">
+  <!-- dark room -->
+  <rect x="0" y="0" width="520" height="200" fill="#1a1a2e" rx="8"/>
+  <!-- small hole & sunbeam -->
+  <rect x="0" y="0" width="18" height="200" fill="#2d2d44"/>
+  <rect x="5" y="88" width="13" height="24" fill="#1a1a2e"/>
+  <!-- white incoming beam -->
+  <polygon points="0,92 0,108 110,104 110,96" fill="rgba(255,255,220,0.85)"/>
+  <!-- prism -->
+  <polygon points="110,55 110,145 185,145" fill="rgba(173,216,230,0.55)" stroke="#90caf9" stroke-width="2"/>
+  <text x="125" y="130" fill="#90caf9" font-weight="bold">稜鏡</text>
+  <!-- spectrum rays -->
+  <line x1="185" y1="145" x2="460" y2="60"  stroke="#ef4444" stroke-width="3.5" opacity="0.9"/>
+  <line x1="185" y1="145" x2="460" y2="78"  stroke="#fb923c" stroke-width="3.5" opacity="0.9"/>
+  <line x1="185" y1="145" x2="460" y2="96"  stroke="#fde047" stroke-width="3.5" opacity="0.9"/>
+  <line x1="185" y1="145" x2="460" y2="112" stroke="#4ade80" stroke-width="3.5" opacity="0.9"/>
+  <line x1="185" y1="145" x2="460" y2="128" stroke="#60a5fa" stroke-width="3.5" opacity="0.9"/>
+  <line x1="185" y1="145" x2="460" y2="144" stroke="#818cf8" stroke-width="3.5" opacity="0.9"/>
+  <line x1="185" y1="145" x2="460" y2="160" stroke="#c084fc" stroke-width="3.5" opacity="0.9"/>
+  <!-- screen -->
+  <rect x="460" y="48" width="12" height="124" fill="#eceff1" rx="2"/>
+  <!-- labels -->
+  <text x="468" y="64"  fill="#ef4444" font-weight="bold">紅</text>
+  <text x="468" y="100" fill="#fde047" font-weight="bold">黃</text>
+  <text x="468" y="132" fill="#60a5fa" font-weight="bold">藍</text>
+  <text x="468" y="163" fill="#c084fc" font-weight="bold">紫</text>
+  <text x="22" y="95"  fill="#fffde7" font-weight="bold">白光</text>
+  <text x="195" y="165" fill="#90caf9">折射後分散</text>
+  <text x="160" y="185" fill="#90a4ae">牛頓稜鏡實驗示意（1666）</text>
+</svg>`
+  },
+  {
+    icon:'🔭', title:'伽利略的望遠鏡革命',year:'1609年',
+    text:'1609 年，義大利科學家<b>伽利略（Galileo Galilei）</b>聽說荷蘭有人發明了可以讓遠處看起來更近的「荷蘭眼鏡」（望遠鏡），他憑藉對光學的理解，在不到一天的時間就自己研製出一台倍率更高的望遠鏡。<br><br>伽利略把望遠鏡對準天空，做出了改變歷史的發現：<b>月球表面有山脈和坑洞、木星有四顆衛星（伽利略衛星）、太陽表面有黑子。</b>這些發現支持了哥白尼的「地動說」（太陽是宇宙中心），挑戰了當時教會主張的「地球是宇宙中心」。<br><br>伽利略的折射式望遠鏡正是利用<b>凸透鏡與凹透鏡的組合</b>，讓遠方的像變大，送進人的眼睛。',
+    tip:'🪐 伽利略發現的木星四顆衛星（木衛一到四）至今仍稱為「伽利略衛星」，用肉眼加望遠鏡就可以看到！',
+    src:'Galilei, G. (1610). <i>Sidereus Nuncius (星際信使).</i> Venezia: Thomas Baglionus. ／ Van Helden, A. (1989). Galileo and the telescope. <i>Novità celesti e crisi del sapere.</i>',
+    svg:`<svg viewBox="0 0 520 200" font-family="sans-serif" font-size="12">
+  <!-- night sky -->
+  <rect x="0" y="0" width="520" height="200" fill="#0d1b2a" rx="8"/>
+  <!-- stars -->
+  <g fill="#fff" opacity="0.6">
+    <circle cx="30" cy="20" r="1.5"/><circle cx="80" cy="40" r="1"/><circle cx="130" cy="15" r="2"/>
+    <circle cx="200" cy="30" r="1.5"/><circle cx="260" cy="10" r="1"/><circle cx="320" cy="35" r="2"/>
+    <circle cx="400" cy="18" r="1.5"/><circle cx="460" cy="28" r="1"/><circle cx="500" cy="12" r="2"/>
+  </g>
+  <!-- telescope tube -->
+  <rect x="60" y="90" width="220" height="28" rx="8" fill="#5d4037" stroke="#8d6e63" stroke-width="2"/>
+  <ellipse cx="60" cy="104" rx="14" ry="20" fill="#4e342e" stroke="#8d6e63" stroke-width="2"/>
+  <ellipse cx="280" cy="104" rx="8" ry="13" fill="#4e342e" stroke="#8d6e63" stroke-width="2"/>
+  <!-- lens labels -->
+  <text x="48" y="138" fill="#90caf9" font-size="11">目鏡（凹透鏡）</text>
+  <text x="248" y="138" fill="#90caf9" font-size="11">物鏡（凸透鏡）</text>
+  <!-- light rays through telescope -->
+  <line x1="280" y1="96"  x2="380" y2="70"  stroke="#fdd835" stroke-width="1.5" opacity="0.7" stroke-dasharray="4,3"/>
+  <line x1="280" y1="104" x2="380" y2="104" stroke="#fdd835" stroke-width="1.5" opacity="0.7" stroke-dasharray="4,3"/>
+  <line x1="280" y1="112" x2="380" y2="138" stroke="#fdd835" stroke-width="1.5" opacity="0.7" stroke-dasharray="4,3"/>
+  <!-- Jupiter -->
+  <circle cx="420" cy="104" r="35" fill="#c8a96e" stroke="#a0784a" stroke-width="2"/>
+  <ellipse cx="420" cy="104" rx="35" ry="12" fill="none" stroke="#8d6e63" stroke-width="2" opacity="0.5"/>
+  <text x="408" y="108" fill="#5d4037" font-weight="bold" font-size="11">木星</text>
+  <!-- Galilean moons -->
+  <circle cx="368" cy="76"  r="4" fill="#e0e0e0" stroke="#bdbdbd" stroke-width="1"/>
+  <circle cx="382" cy="148" r="3" fill="#e0e0e0" stroke="#bdbdbd" stroke-width="1"/>
+  <circle cx="462" cy="68"  r="5" fill="#e0e0e0" stroke="#bdbdbd" stroke-width="1"/>
+  <circle cx="475" cy="135" r="3.5" fill="#e0e0e0" stroke="#bdbdbd" stroke-width="1"/>
+  <text x="354" y="68"  fill="#90caf9" font-size="10">衛星</text>
+  <text x="476" y="65"  fill="#90caf9" font-size="10">衛星</text>
+  <!-- eye at telescope -->
+  <ellipse cx="48" cy="104" rx="14" ry="10" fill="#fff8e1" stroke="#f59e0b" stroke-width="1.5"/>
+  <circle cx="50" cy="104" r="5" fill="#1a2b4a"/>
+  <text x="10" y="165" fill="#90a4ae">伽利略望遠鏡發現木星衛星（1609）</text>
+</svg>`
+  },
+  {
+    icon:'🦠', title:'雷文霍克發現微生物',year:'1670年代',
+    text:'17 世紀的荷蘭商人<b>安東尼・范・雷文霍克（Antonie van Leeuwenhoek）</b>，靠著自學磨製出當時世界上最精細的玻璃透鏡，放大倍率高達 <b>270 倍</b>——遠超當時其他人的技術。<br><br>1674 年，他用自製顯微鏡觀察湖水，發現水裡有許多肉眼看不見、會移動的微小生物，他稱之為「小動物（animalcules）」，也就是今天說的<b>微生物</b>。他後來更觀察了牙垢、血液、精子，每次都發現全新的微小世界。<br><br>雷文霍克沒有正式科學學位，卻成為<b>「微生物學之父」</b>。他的成功關鍵，正是他對<b>凸透鏡磨製技術</b>的極致追求。',
+    tip:'🔬 雷文霍克一生磨製了超過 500 片透鏡，他磨製透鏡的方法至今仍是謎，沒有完整留存的紀錄。',
+    src:'Leeuwenhoek, A. van (1673–1683). Letters to the Royal Society of London. ／ Dobell, C. (1932). <i>Antony van Leeuwenhoek and His "Little Animals".</i> Harcourt, Brace and Company.',
+    svg:`<svg viewBox="0 0 520 200" font-family="sans-serif" font-size="12">
+  <!-- background -->
+  <rect x="0" y="0" width="520" height="200" fill="#e8f5e9" rx="8"/>
+  <!-- microscope body -->
+  <rect x="60" y="30" width="20" height="120" rx="4" fill="#795548" stroke="#5d4037" stroke-width="2"/>
+  <rect x="40" y="145" width="60" height="16" rx="4" fill="#5d4037"/>
+  <rect x="48" y="161" width="44" height="10" rx="3" fill="#4e342e"/>
+  <!-- lens at top -->
+  <ellipse cx="70" cy="36" rx="18" ry="10" fill="#bbdefb" stroke="#1565c0" stroke-width="2"/>
+  <text x="50" y="22" fill="#1565c0" font-weight="bold">高倍凸透鏡</text>
+  <text x="30" y="185" fill="#546e7a">（雷文霍克自製顯微鏡）</text>
+  <!-- slide stage -->
+  <rect x="46" y="138" width="48" height="8" rx="2" fill="#8d6e63"/>
+  <!-- pond water drop on slide -->
+  <ellipse cx="70" cy="142" rx="16" ry="6" fill="rgba(144,202,249,0.6)" stroke="#42a5f5" stroke-width="1.5"/>
+  <!-- zoom circle showing microbes -->
+  <circle cx="310" cy="100" r="85" fill="#e3f2fd" stroke="#1565c0" stroke-width="2.5"/>
+  <text x="252" y="30" fill="#1565c0" font-weight="bold">顯微鏡下的世界（270倍）</text>
+  <!-- connecting dashed lines -->
+  <line x1="86" y1="138" x2="228" y2="118" stroke="#90a4ae" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <line x1="86" y1="146" x2="228" y2="140" stroke="#90a4ae" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <!-- microorganisms inside circle -->
+  <ellipse cx="290" cy="90"  rx="18" ry="9"  fill="#a5d6a7" stroke="#388e3c" stroke-width="1.5"/>
+  <line x1="278" y1="90" x2="302" y2="90" stroke="#388e3c" stroke-width="1"/>
+  <ellipse cx="330" cy="115" rx="8"  ry="20" fill="#81c784" stroke="#2e7d32" stroke-width="1.5"/>
+  <circle cx="300" cy="118" r="12" fill="#c8e6c9" stroke="#4caf50" stroke-width="1.5"/>
+  <circle cx="295" cy="113" r="3"  fill="#388e3c"/>
+  <circle cx="310" cy="115" r="2"  fill="#2e7d32"/>
+  <!-- rod bacteria -->
+  <rect x="318" y="82" width="24" height="9" rx="4" fill="#66bb6a" stroke="#2e7d32" stroke-width="1.5"/>
+  <rect x="268" y="110" width="20" height="8" rx="4" fill="#81c784" stroke="#388e3c" stroke-width="1.5"/>
+  <!-- spiral -->
+  <path d="M282,132 Q290,124 298,132 Q306,140 314,132" stroke="#2e7d32" stroke-width="2" fill="none"/>
+  <text x="360" y="175" fill="#2e7d32" font-weight="bold">微生物！</text>
+  <text x="140" y="195" fill="#546e7a">雷文霍克用自製透鏡首次發現微生物（1674）</text>
+</svg>`
+  },
+  {
+    icon:'👓', title:'富蘭克林發明雙焦眼鏡',year:'1784年',
+    text:'美國開國元勳<b>班傑明・富蘭克林（Benjamin Franklin）</b>，除了發現電的奧秘，還是一位實用發明家。他年老後既有近視又有老花眼，每次從口袋裡換眼鏡讓他非常煩惱。<br><br>1784 年，富蘭克林想到了一個聰明的解決辦法：把<b>近視用的凹透鏡</b>和<b>老花用的凸透鏡</b>各切成一半，上半片用凹鏡（看遠），下半片用凸鏡（看近），裝進同一個鏡框，只要眼睛往下看書報就自動切換成老花鏡。他把這個設計稱為「雙焦眼鏡（bifocals）」。<br><br>這個發明沿用至今，現代<b>漸進多焦眼鏡</b>正是雙焦眼鏡的進化版，利用透鏡曲率的漸進變化，讓視野切換更自然。',
+    tip:'💡 富蘭克林在1785年寫信給朋友提到這個發明，說「我再也不需要在口袋裡帶兩副眼鏡了！」',
+    src:'Franklin, B. (1785). Letter to George Whatley, May 23, 1785. In <i>The Works of Benjamin Franklin,</i> Vol. XI. ／ Letocha, C.E. (1990). The invention and early manufacture of bifocals. <i>Survey of Ophthalmology, 35</i>(3), 226–235.',
+    svg:`<svg viewBox="0 0 520 200" font-family="sans-serif" font-size="12">
+  <!-- background -->
+  <rect x="0" y="0" width="520" height="200" fill="#fff8e1" rx="8"/>
+  <!-- Franklin portrait sketch (simplified) -->
+  <circle cx="80" cy="72" r="38" fill="#ffe0b2" stroke="#ff8f00" stroke-width="2"/>
+  <ellipse cx="80" cy="65" rx="20" ry="24" fill="#ffcc80"/>
+  <circle cx="72" cy="62" r="4" fill="#4e342e"/>
+  <circle cx="88" cy="62" r="4" fill="#4e342e"/>
+  <path d="M72,78 Q80,84 88,78" stroke="#5d4037" stroke-width="2" fill="none"/>
+  <rect x="50" y="95" width="60" height="48" rx="4" fill="#ff8f00" stroke="#e65100" stroke-width="1.5"/>
+  <text x="42" y="162" fill="#e65100" font-weight="bold">富蘭克林</text>
+  <!-- bifocal lens diagram -->
+  <rect x="200" y="30" width="280" height="150" rx="10" fill="#fff9c4" stroke="#f9a825" stroke-width="1.5"/>
+  <text x="220" y="52" fill="#e65100" font-weight="bold" font-size="13">雙焦眼鏡原理</text>
+  <!-- upper half: concave (myopia) -->
+  <rect x="220" y="60" width="110" height="55" rx="6" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="240" y="82" fill="#c62828" font-weight="bold">上半：凹透鏡</text>
+  <text x="240" y="97" fill="#1565c0">看遠用（近視）</text>
+  <text x="248" y="112" fill="#546e7a">↑ 往上看遠景</text>
+  <!-- lower half: convex (reading) -->
+  <rect x="220" y="115" width="110" height="55" rx="6" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1.5"/>
+  <text x="240" y="138" fill="#2e7d32" font-weight="bold">下半：凸透鏡</text>
+  <text x="240" y="153" fill="#2e7d32">看近用（老花）</text>
+  <text x="248" y="168" fill="#546e7a">↓ 往下看書報</text>
+  <!-- dividing line -->
+  <line x1="220" y1="115" x2="330" y2="115" stroke="#f59e0b" stroke-width="2.5"/>
+  <text x="338" y="120" fill="#f59e0b" font-weight="bold">分界線</text>
+  <!-- glasses frame -->
+  <ellipse cx="420" cy="95" rx="50" ry="38" fill="none" stroke="#795548" stroke-width="3"/>
+  <ellipse cx="420" cy="76" rx="36" ry="18" fill="#e3f2fd" opacity="0.7" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <ellipse cx="420" cy="114" rx="36" ry="18" fill="#e8f5e9" opacity="0.7" stroke="#2e7d32" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <line x1="384" y1="95" x2="456" y2="95" stroke="#f59e0b" stroke-width="2"/>
+  <text x="396" y="72" fill="#1565c0" font-size="11">看遠</text>
+  <text x="396" y="116" fill="#2e7d32" font-size="11">看近</text>
+  <text x="390" y="155" fill="#546e7a">雙焦鏡框示意</text>
+</svg>`
+  },
+  {
+    icon:'💡', title:'光纖通訊的誕生',year:'1966年',
+    text:'1966 年，英國華裔科學家<b>高錕（Charles Kuen Kao）</b>提出了一個革命性的想法：如果能製造出足夠純淨的玻璃光纖，<b>光可以在玻璃纖維內壁不斷全反射</b>，沿著彎曲的路徑傳遞，不需要電力也能傳送大量訊息。<br><br>這就是<b>全內反射（Total Internal Reflection）</b>原理——當光從密度高的介質（玻璃）射向密度低的介質（空氣），且入射角超過臨界角時，光不會穿出去，而是全部反射回玻璃內，就像在隧道裡不斷彈跳前進。<br><br>高錕的理論在 1970 年代被實現，今天全球的網路電話、高速網際網路，都靠著這一根根細如頭髮的<b>光纖</b>傳遞。他因此榮獲 <b>2009 年諾貝爾物理學獎</b>。',
+    tip:'🌐 一條拇指粗的光纖電纜，可同時傳輸超過 100 萬路電話！這比銅線電纜快且省能源得多。',
+    src:'Kao, C.K. & Hockham, G.A. (1966). Dielectric-fibre surface waveguides for optical frequencies. <i>Proceedings of the Institution of Electrical Engineers, 113</i>(7), 1151–1158. ／ Nobel Prize Committee (2009). <i>Scientific Background: Charles K. Kao.</i> The Royal Swedish Academy of Sciences.',
+    svg:`<svg viewBox="0 0 520 200" font-family="sans-serif" font-size="12">
+  <!-- background -->
+  <rect x="0" y="0" width="520" height="200" fill="#0d1b2a" rx="8"/>
+  <!-- fiber cable outline (curved) -->
+  <path d="M20,100 Q80,40 160,100 Q240,160 320,100 Q400,40 500,100" stroke="#546e7a" stroke-width="22" fill="none" stroke-linecap="round"/>
+  <path d="M20,100 Q80,40 160,100 Q240,160 320,100 Q400,40 500,100" stroke="#37474f" stroke-width="18" fill="none" stroke-linecap="round"/>
+  <!-- light bouncing inside fiber -->
+  <path d="M20,100 Q80,40 160,100 Q240,160 320,100 Q400,40 500,100" stroke="none" fill="none" id="fpath"/>
+  <!-- bouncing light rays (zigzag approximation) -->
+  <polyline points="20,100 60,62 100,100 140,62 180,100 220,138 260,100 300,62 340,100 380,62 420,100 460,62 500,100"
+    stroke="#fdd835" stroke-width="2.5" fill="none" opacity="0.9"/>
+  <!-- reflection dots -->
+  <g fill="#fdd835" opacity="0.8">
+    <circle cx="60"  cy="62"  r="4"/>
+    <circle cx="100" cy="100" r="3"/>
+    <circle cx="140" cy="62"  r="4"/>
+    <circle cx="180" cy="100" r="3"/>
+    <circle cx="220" cy="138" r="4"/>
+    <circle cx="260" cy="100" r="3"/>
+    <circle cx="300" cy="62"  r="4"/>
+    <circle cx="340" cy="100" r="3"/>
+    <circle cx="380" cy="62"  r="4"/>
+    <circle cx="420" cy="100" r="3"/>
+    <circle cx="460" cy="62"  r="4"/>
+  </g>
+  <!-- light source on left -->
+  <circle cx="20" cy="100" r="14" fill="#fdd835" opacity="0.9"/>
+  <text x="6" y="128" fill="#fdd835" font-weight="bold">光源</text>
+  <!-- receiver on right -->
+  <circle cx="500" cy="100" r="14" fill="#42a5f5" opacity="0.9"/>
+  <text x="480" y="128" fill="#42a5f5" font-weight="bold">接收</text>
+  <!-- labels -->
+  <text x="210" y="20" fill="#90caf9" font-weight="bold" font-size="13">光在光纖內不斷全反射前進</text>
+  <text x="160" y="180" fill="#90a4ae">全內反射原理（高錕 1966）→ 2009 諾貝爾物理學獎</text>
+  <!-- refraction angle label -->
+  <text x="56" y="50" fill="#fdd835" font-size="11">全反射</text>
+  <text x="216" y="152" fill="#fdd835" font-size="11">全反射</text>
+</svg>`
+  },
+  {
+    icon:'🌌', title:'哈伯太空望遠鏡的故事',year:'1990年',
+    text:'1990 年，NASA 把<b>哈伯太空望遠鏡（Hubble Space Telescope）</b>送上距地面約 547 公里的軌道。它採用<b>卡塞格林式反射望遠鏡</b>設計，用兩面鏡子（主鏡直徑 2.4 公尺）取代傳統透鏡來聚光成像，可以完全避開大氣層干擾。<br><br>然而升空後科學家發現主鏡有 <b>0.0022 毫米的球面像差</b>——比頭髮細 50 倍的誤差，卻讓拍出的照片模糊！1993 年，太空人乘坐太空梭進行太空維修，為望遠鏡加裝了「矯正光學鏡片」，就像幫它戴上一副眼鏡，問題立刻解決。<br><br>哈伯望遠鏡迄今已拍攝超過 150 萬張宇宙照片，幫助科學家確認宇宙年齡約為 <b>138 億年</b>。',
+    tip:'🚀 2021年升空的詹姆斯・韋伯太空望遠鏡（JWST）是哈伯的接班人，主鏡直徑達 6.5 公尺，可以觀測宇宙誕生後不久的樣貌！',
+    src:'NASA (1990). <i>Hubble Space Telescope: Overview.</i> NASA Official Website. ／ Burrows, C.J. et al. (1991). Hubble Space Telescope optical systems failure report. <i>NASA Technical Report</i> TM-103443.',
+    svg:`<svg viewBox="0 0 520 200" font-family="sans-serif" font-size="12">
+  <!-- space background -->
+  <rect x="0" y="0" width="520" height="200" fill="#0a0a1a" rx="8"/>
+  <!-- stars -->
+  <g fill="#fff">
+    <circle cx="20" cy="15" r="1"/><circle cx="50" cy="40" r="1.5"/><circle cx="90" cy="8"  r="1"/>
+    <circle cx="150" cy="35" r="1"/><circle cx="200" cy="18" r="1.5"/><circle cx="250" cy="45" r="1"/>
+    <circle cx="310" cy="12" r="1"/><circle cx="370" cy="38" r="1.5"/><circle cx="430" cy="8"  r="1"/>
+    <circle cx="480" cy="30" r="1"/><circle cx="510" cy="55" r="1.5"/>
+  </g>
+  <!-- galaxies in background -->
+  <ellipse cx="460" cy="60" rx="22" ry="12" fill="none" stroke="rgba(144,202,249,0.4)" stroke-width="1.5"/>
+  <circle cx="460" cy="60" r="5" fill="rgba(144,202,249,0.3)"/>
+  <ellipse cx="490" cy="150" rx="15" ry="8" fill="none" stroke="rgba(197,161,246,0.4)" stroke-width="1"/>
+  <!-- Hubble telescope body -->
+  <rect x="140" y="80" width="200" height="45" rx="6" fill="#455a64" stroke="#78909c" stroke-width="2"/>
+  <!-- solar panels -->
+  <rect x="88"  y="68" width="55" height="68" rx="3" fill="#1565c0" stroke="#42a5f5" stroke-width="1.5" opacity="0.9"/>
+  <rect x="397" y="68" width="55" height="68" rx="3" fill="#1565c0" stroke="#42a5f5" stroke-width="1.5" opacity="0.9"/>
+  <g stroke="#42a5f5" stroke-width="0.8" opacity="0.5">
+    <line x1="88" y1="80" x2="143" y2="80"/><line x1="88" y1="92" x2="143" y2="92"/>
+    <line x1="88" y1="104" x2="143" y2="104"/><line x1="88" y1="116" x2="143" y2="116"/>
+    <line x1="397" y1="80" x2="452" y2="80"/><line x1="397" y1="92" x2="452" y2="92"/>
+    <line x1="397" y1="104" x2="452" y2="104"/><line x1="397" y1="116" x2="452" y2="116"/>
+  </g>
+  <!-- aperture -->
+  <ellipse cx="140" cy="102" rx="18" ry="18" fill="#1a237e" stroke="#3949ab" stroke-width="2"/>
+  <!-- secondary mirror -->
+  <ellipse cx="310" cy="102" rx="10" ry="10" fill="#37474f" stroke="#90a4ae" stroke-width="1.5"/>
+  <!-- light path: from galaxy to aperture, reflect to secondary, back to detector -->
+  <line x1="440" y1="50" x2="142" y2="94"  stroke="#fdd835" stroke-width="1.5" opacity="0.7" stroke-dasharray="4,3"/>
+  <line x1="440" y1="70" x2="142" y2="102" stroke="#fdd835" stroke-width="1.5" opacity="0.7" stroke-dasharray="4,3"/>
+  <line x1="440" y1="90" x2="142" y2="110" stroke="#fdd835" stroke-width="1.5" opacity="0.7" stroke-dasharray="4,3"/>
+  <line x1="142" y1="94"  x2="302" y2="100" stroke="#ef4444" stroke-width="1.5" opacity="0.8"/>
+  <line x1="142" y1="102" x2="302" y2="102" stroke="#ef4444" stroke-width="1.5" opacity="0.8"/>
+  <line x1="142" y1="110" x2="302" y2="104" stroke="#ef4444" stroke-width="1.5" opacity="0.8"/>
+  <!-- detector -->
+  <rect x="310" y="90" width="22" height="24" rx="3" fill="#42a5f5" stroke="#1565c0" stroke-width="1.5"/>
+  <text x="316" y="126" fill="#42a5f5" font-size="10">相機</text>
+  <!-- labels -->
+  <text x="116" y="75" fill="#90caf9" font-size="11">主鏡</text>
+  <text x="426" y="50" fill="#fdd835" font-size="11">遠方星系</text>
+  <text x="148" y="165" fill="#90a4ae">哈伯太空望遠鏡：反射式設計避開大氣干擾（1990）</text>
+</svg>`
+  }
+];
+
+let storyActive=0;
+
+function buildStory(){
+  const sb=document.getElementById('storySidebar');
+  sb.innerHTML=STORIES.map((s,i)=>`
+    <div class="know-si${i===0?' on':''}" onclick="selectStory(${i})">
+      <span class="si-icon">${s.icon}</span>
+      <span class="si-txt">${s.title}<br><span style="font-size:12px;color:#90a4ae;font-weight:400;">${s.year}</span></span>
+    </div>`).join('');
+  renderStoryPanel();
+}
+
+function selectStory(i){
+  storyActive=i;
+  document.querySelectorAll('#storySidebar .know-si').forEach((el,j)=>el.classList.toggle('on',j===i));
+  renderStoryPanel();
+}
+
+function renderStoryPanel(){
+  const s=STORIES[storyActive];
+  document.getElementById('storyPanel').innerHTML=`
+    <div class="kp-head">${s.icon} ${s.title} <span style="font-size:14px;color:#90a4ae;font-weight:500;">（${s.year}）</span></div>
+    <div class="kp-text">${s.text}</div>
+    <div class="kp-svg">${s.svg}</div>
+    <div class="kp-tip">${s.tip}</div>
+    <div class="kp-src">📚 <b>資料來源：</b>${s.src}</div>`;
+}
+
+// ─── TAB 5: QUIZ ───────────────────────────────────────────
+const QS=[
+  {q:'小明用放大鏡觀察螞蟻，看到的卻是一個模糊的影像。他應該怎麼做才能看到放大清楚的螞蟻？',
+   o:['把放大鏡移近螞蟻，讓物距小於焦距','把放大鏡舉得更高，離螞蟻越遠越好','換一個直徑更大的放大鏡','等到光線更充足的地方再看'],
+   a:0,e:'放大鏡觀察需讓「物距 < 焦距」，才能形成正立放大的虛像。把放大鏡靠近物體，直到影像清楚即可。'},
+
+  {q:'電影院的投影機把影像放大投射在銀幕上，這是利用凸透鏡的哪種成像原理？',
+   o:['物距小於焦距，形成正立放大的虛像','物距在 1~2 倍焦距間，形成倒立放大的實像','物距大於 2 倍焦距，形成倒立縮小的實像','物距等於焦距，光線平行射出'],
+   a:1,e:'投影機的底片放在鏡頭 1~2 倍焦距間，形成倒立放大的實像投在銀幕上，因此底片必須倒放才能投出正確的畫面。'},
+
+  {q:'野外求生時，阿強想用放大鏡聚光來點燃枯葉。下列哪個做法最正確？',
+   o:['把放大鏡緊貼枯葉，距離越近越好','調整放大鏡高度，讓地面上的光點最小最亮','把放大鏡盡量舉高，讓影子覆蓋枯葉','在有遮蔭的地方操作，避免陽光太強烈'],
+   a:1,e:'凸透鏡聚光需要光線聚焦在「焦點」——此時光點最小、最亮、溫度最高。距離約等於焦距時效果最好。'},
+
+  {q:'實驗中，把蠟燭從遠處慢慢靠近放大鏡（固定不動），成像變化的正確順序是？',
+   o:['倒立縮小 → 倒立放大 → 模糊 → 正立放大','正立放大 → 模糊 → 倒立放大 → 倒立縮小','倒立縮小 → 模糊 → 倒立放大 → 正立放大','模糊 → 倒立縮小 → 倒立放大 → 正立放大'],
+   a:0,e:'物距由遠而近：倒立縮小（>2f）→ 倒立放大（f~2f）→ 模糊（≈f）→ 正立放大（<f）。'},
+
+  {q:'奶奶說看書時字太小看不清楚，需要戴老花眼鏡。老花眼鏡的鏡片是哪一種？',
+   o:['凹透鏡（中間薄、邊緣厚）','凸透鏡（中間厚、邊緣薄）','完全平坦的透明玻璃','半月形的單面凸透鏡'],
+   a:1,e:'老花眼（遠視）的水晶體聚光能力不足，像落在視網膜後。配戴凸透鏡幫助光線先匯聚，讓像前移到視網膜，就能看清楚近處的文字。'},
+
+  {q:'阿志用手機拍照，發現路燈在照片裡是「倒立」的。最可能的原因是什麼？',
+   o:['手機鏡頭是凹透鏡，讓像倒立','路燈很遠（>2f），凸透鏡在感光元件上形成倒立縮小的實像，手機軟體沒有自動轉正','手機螢幕的折射讓畫面翻轉','光線在玻璃表面反射造成倒影'],
+   a:1,e:'手機鏡頭是凸透鏡，路燈在遠處（物距>2f），感光元件上得到倒立縮小的實像。手機通常用軟體自動轉正，若設定問題則出現倒立影像。'},
+
+  {q:'小雯把蠟燭放在放大鏡前 20 公分，紙板移到任何位置都找不到清楚的像。最可能的原因是？',
+   o:['蠟燭的亮度不夠，光線太弱','20 公分正好等於這個放大鏡的焦距，光線折射後平行射出，無法聚焦','紙板顏色太深，無法顯示影像','實驗需要在完全黑暗的環境才能看到像'],
+   a:1,e:'當物距等於焦距，光線折射後成平行光，不能聚焦成清楚的像，紙板無論放在哪裡都找不到清楚的影像。'},
+
+  {q:'承上題，改用焦距為 10 公分的放大鏡，蠟燭仍放在 20 公分處，最可能看到什麼像？',
+   o:['仍然模糊，因為距離沒有改變','倒立放大的像（物距介於焦距與 2 倍焦距之間）','正立放大的虛像（物距小於焦距）','倒立縮小的像（物距大於 2 倍焦距）'],
+   a:1,e:'焦距10cm，物距20cm：20 > 10（焦距）且 20 = 2×10（2倍焦距）。嚴格說此時是等大倒立的像，但若焦距稍短使20cm落在f~2f區間，就是倒立放大。這說明放大鏡焦距不同，相同距離下成像結果也不同。'},
+];
+
+let uAns=new Array(QS.length).fill(-1), done=new Array(QS.length).fill(false);
+
+function buildQuiz(){
+  document.getElementById('quizArea').innerHTML=QS.map((q,qi)=>`
+    <div class="q-block" id="qb${qi}">
+      <div class="q-num">第 ${qi+1} 題 / 共 ${QS.length} 題</div>
+      <div class="q-text">${q.q}</div>
+      <div class="opts">${q.o.map((opt,oi)=>`<button class="opt" id="o${qi}_${oi}" onclick="pick(${qi},${oi})">${'ABCD'[oi]}. ${opt}</button>`).join('')}</div>
+      <div class="explain" id="ex${qi}">💡 解析：${q.e}</div>
+    </div>`).join('');
+}
+
+function pick(qi,oi){
+  if(done[qi])return;
+  done[qi]=true; uAns[qi]=oi;
+  const correct=QS[qi].a;
+  for(let i=0;i<QS[qi].o.length;i++){
+    const b=document.getElementById('o'+qi+'_'+i);
+    b.disabled=true;
+    if(i===correct)b.classList.add('correct');
+    else if(i===oi)b.classList.add('wrong');
+  }
+  document.getElementById('ex'+qi).classList.add('show');
+  const sc=done.filter((d,i)=>d&&uAns[i]===QS[i].a).length;
+  document.getElementById('scoreDis').innerHTML='已答對：<b>'+sc+'</b> 題';
+}
+
+function showResult(){
+  QS.forEach((q,qi)=>{
+    if(!done[qi]){
+      done[qi]=true;uAns[qi]=-1;
+      document.getElementById('o'+qi+'_'+q.a).classList.add('correct');
+      document.getElementById('ex'+qi).classList.add('show');
+      for(let i=0;i<q.o.length;i++)document.getElementById('o'+qi+'_'+i).disabled=true;
+    }
+  });
+  const sc=QS.filter((q,i)=>uAns[i]===q.a).length, tot=QS.length;
+  document.getElementById('scoreDis').innerHTML='已答對：<b>'+sc+'</b> 題';
+  document.getElementById('resScore').textContent=sc+' / '+tot;
+  document.getElementById('resMsg').textContent=
+    sc===tot?'🏆 完美！你是光學達人！':
+    sc>=tot*.75?'🌟 非常棒！再看看錯誤解析，下次更好！':
+    sc>=tot*.5?'👍 不錯！多用成像模擬台練習！':
+    '💪 加油！多玩玩模擬，再來挑戰！';
+  const rb=document.getElementById('resBox');
+  rb.classList.add('show');
+  rb.scrollIntoView({behavior:'smooth'});
+}
+
+function resetQuiz(){
+  uAns=new Array(QS.length).fill(-1);
+  done=new Array(QS.length).fill(false);
+  document.getElementById('resBox').classList.remove('show');
+  document.getElementById('scoreDis').innerHTML='已答對：<b>0</b> 題';
+  buildQuiz();
+}
+
+// ─── TAB 5: Q&A GLOSSARY ───────────────────────────────────
+const TERMS = [
+  {
+    term:'凸透鏡', en:'Convex Lens', cat:'透鏡', badge:'',
+    def:'中間<b>厚</b>、邊緣<b>薄</b>的透明鏡片。光線通過時會向中心<b>折射聚攏</b>（會聚），使光線匯集在一點。放大鏡、相機鏡頭、投影機鏡頭都屬於凸透鏡。',
+    tags:['life:放大鏡、老花眼鏡、相機','exp:本實驗的核心器材','tip:與凹透鏡相反']
+  },
+  {
+    term:'凹透鏡', en:'Concave Lens', cat:'透鏡',badge:'',
+    def:'中間<b>薄</b>、邊緣<b>厚</b>的透明鏡片。光線通過時會向兩側<b>折射發散</b>，使光線散開。近視眼鏡就是凹透鏡，用來讓光線先發散，再進入眼睛聚焦到視網膜上。',
+    tags:['life:近視眼鏡','tip:凸透鏡與凹透鏡互為對比']
+  },
+  {
+    term:'焦距', en:'Focal Length（f）', cat:'距離',badge:'amber',
+    def:'從<b>光心</b>（透鏡中心）到<b>焦點</b>的距離，通常用符號 <b>f</b> 表示。焦距越短，透鏡的聚光（或發散）能力越強。本實驗示範影片中使用的放大鏡焦距約為 <b>20 公分</b>。',
+    tags:['exp:本模擬焦距設定為 20 cm','tip:不同放大鏡的焦距不同，成像距離也不一樣']
+  },
+  {
+    term:'焦點', en:'Focal Point（F）', cat:'距離',badge:'amber',
+    def:'平行主軸的光線通過凸透鏡後，<b>聚集匯合的那一個點</b>，稱為焦點，符號為 <b>F</b>。凸透鏡兩側各有一個焦點，分別稱為前焦點（左 F）與後焦點（右 F′）。',
+    tags:['life:放大鏡聚光點火，就是讓太陽光聚焦於焦點','exp:光線路徑圖中的橘色圓點']
+  },
+  {
+    term:'物距', en:'Object Distance（u）', cat:'距離',badge:'amber',
+    def:'<b>物體</b>（蠟燭）到<b>透鏡光心</b>之間的距離，符號為 <b>u</b>，單位公分（cm）。物距的大小決定成像的種類：大於 2f、等於 2f、介於 f~2f、等於 f、小於 f，各有不同的成像結果。',
+    tags:['exp:滑桿控制的就是物距','tip:物距是成像實驗最重要的控制變因']
+  },
+  {
+    term:'像距', en:'Image Distance（v）', cat:'距離',badge:'amber',
+    def:'<b>像</b>到<b>透鏡光心</b>之間的距離，符號為 <b>v</b>。實像時像距為正值（像在透鏡另一側），虛像時像距為負值（像在物體同側，無法投影在螢幕上）。<br>計算公式：<b>1/f = 1/u + 1/v</b>',
+    tags:['exp:模擬台右側顯示的數字','tip:透鏡公式連結物距、像距與焦距']
+  },
+  {
+    term:'實像', en:'Real Image', cat:'成像',badge:'green',
+    def:'光線<b>真正匯聚</b>在某一點所形成的像，可以投影在紙板或螢幕上。實像<b>一定是倒立的</b>（上下左右翻轉）。本實驗中把紙板放在蠟燭另一側，看到的清楚影像就是實像。',
+    tags:['life:相機底片上的像、投影機螢幕上的像','exp:紙板接到的像','tip:實像可以被螢幕接住；虛像不行']
+  },
+  {
+    term:'虛像', en:'Virtual Image', cat:'成像',badge:'green',
+    def:'光線折射（或反射）後，<b>延伸線</b>（不是真正光線）交匯所形成的像，<b>無法投影在螢幕上</b>。虛像通常是<b>正立放大</b>的。直接用眼睛看到的放大鏡效果，就是虛像。',
+    tags:['life:放大鏡看螞蟻','tip:鏡中影像（平面鏡）也是虛像']
+  },
+  {
+    term:'倒立的像', en:'Inverted Image', cat:'成像',badge:'green',
+    def:'成像結果<b>上下左右翻轉</b>的像。當物體在凸透鏡焦距以外（物距 > f）且不使用眼睛直接觀察時，在另一側螢幕上出現的實像都是倒立的。影片中蠟燭的火焰在像裡面朝下，就是倒立。',
+    tags:['exp:實驗中紙板上看到的蠟燭像','life:相機拍出的原始影像（軟體轉正前）']
+  },
+  {
+    term:'正立的像', en:'Upright Image', cat:'成像',badge:'green',
+    def:'成像結果<b>方向與原物體相同</b>的像，不翻轉。當物距小於焦距（物體靠得很近），凸透鏡產生的虛像就是正立放大的。日常使用放大鏡時看到的就是正立放大的虛像。',
+    tags:['life:用放大鏡看書','exp:物距 < f 時模擬台顯示正立']
+  },
+  {
+    term:'折射', en:'Refraction', cat:'光學',badge:'purple',
+    def:'光線從一種介質（如空氣）進入另一種介質（如玻璃透鏡）時，因傳播速度改變而<b>改變前進方向</b>的現象。凸透鏡正是利用折射，讓光線聚攏或發散，進而成像。',
+    tags:['life:筷子插入水中看起來「折斷」','tip:光在密度較高的介質中傳播較慢']
+  },
+  {
+    term:'光心', en:'Optical Centre（O）', cat:'光學',badge:'purple',
+    def:'透鏡正中央的點，符號為 <b>O</b>。<b>通過光心的光線方向不改變</b>，直線穿過透鏡。這是光線路徑圖中三條標準光線之一（藍線）的依據。',
+    tags:['exp:光線路徑圖中藍色光線通過的點']
+  },
+  {
+    term:'主軸（光軸）', en:'Principal Axis', cat:'光學',badge:'purple',
+    def:'通過透鏡<b>光心</b>並<b>垂直透鏡平面</b>的假想直線，是描述光線路徑的基準線。焦點、物距、像距都是在主軸上量測的。圖中的水平虛線即為主軸。',
+    tags:['exp:成像模擬圖與光線路徑圖中的水平虛線']
+  },
+  {
+    term:'縮小的像', en:'Diminished Image', cat:'成像',badge:'green',
+    def:'像的大小<b>比原物體小</b>的成像結果。當物距大於 2 倍焦距時，凸透鏡在另一側形成倒立、縮小的實像。相機用鏡頭把遠景縮小成像在感光元件上，就是這個原理。',
+    tags:['life:相機、眼睛','exp:物距 > 2f 時，模擬台顯示縮小的像']
+  },
+  {
+    term:'放大的像', en:'Magnified Image', cat:'成像',badge:'green',
+    def:'像的大小<b>比原物體大</b>的成像結果。有兩種情況：① 物距在 f~2f 之間，形成倒立放大的實像（投影機原理）；② 物距小於 f，形成正立放大的虛像（放大鏡原理）。',
+    tags:['life:投影機、放大鏡','exp:物距在 f~2f 或 < f 時']
+  },
+  {
+    term:'成像', en:'Image Formation', cat:'光學',badge:'purple',
+    def:'光線通過透鏡（或反射鏡）後，匯聚或延伸線交匯而<b>形成物體影像</b>的過程。物距、焦距、透鏡種類共同決定成像的位置、方向、大小與種類（實像或虛像）。',
+    tags:['exp:整個放大鏡實驗都在觀察成像','tip:成像是凸透鏡最重要的性質']
+  },
+];
+
+// ─── TAB 6: Q&A PANEL (sidebar layout) ────────────────────
+const TERM_META = [
+  { icon:'🔍', svg:`<svg viewBox="0 0 480 145" font-family="sans-serif" font-size="12">
+  <rect x="0" y="0" width="480" height="145" fill="#f0f6ff" rx="8"/>
+  <text x="16" y="22" fill="#1565c0" font-weight="bold" font-size="13">凸透鏡：中間厚、邊緣薄，使光線會聚</text>
+  <line x1="20" y1="72" x2="460" y2="72" stroke="#b0c4de" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <path d="M220,22 Q236,72 220,122" fill="#bbdefb" stroke="#1565c0" stroke-width="2.5"/>
+  <path d="M260,22 Q244,72 260,122" fill="#bbdefb" stroke="#1565c0" stroke-width="2.5"/>
+  <line x1="220" y1="22" x2="260" y2="22" stroke="#1565c0" stroke-width="2.5"/>
+  <line x1="220" y1="122" x2="260" y2="122" stroke="#1565c0" stroke-width="2.5"/>
+  <text x="226" y="76" fill="#1565c0" font-weight="bold">凸</text>
+  <text x="218" y="140" fill="#546e7a">中間厚</text>
+  <g stroke="#f59e0b" stroke-width="2" opacity="0.9">
+    <line x1="30" y1="50" x2="240" y2="50"/><line x1="30" y1="72" x2="240" y2="72"/><line x1="30" y1="94" x2="240" y2="94"/>
+  </g>
+  <line x1="240" y1="50" x2="340" y2="72" stroke="#ef4444" stroke-width="2"/>
+  <line x1="240" y1="72" x2="340" y2="72" stroke="#ef4444" stroke-width="2"/>
+  <line x1="240" y1="94" x2="340" y2="72" stroke="#ef4444" stroke-width="2"/>
+  <circle cx="340" cy="72" r="5" fill="#ef4444"/>
+  <text x="344" y="68" fill="#b45309" font-weight="bold">聚光</text>
+  <text x="20" y="68" fill="#f9a825" font-weight="bold">平行光</text>
+</svg>` },
+  { icon:'🕶️', svg:`<svg viewBox="0 0 480 145" font-family="sans-serif" font-size="12">
+  <rect x="0" y="0" width="480" height="145" fill="#fff5f5" rx="8"/>
+  <text x="16" y="22" fill="#c62828" font-weight="bold" font-size="13">凹透鏡：中間薄、邊緣厚，使光線發散</text>
+  <line x1="20" y1="72" x2="460" y2="72" stroke="#b0c4de" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <path d="M220,22 Q204,72 220,122" fill="#ffcdd2" stroke="#c62828" stroke-width="2.5"/>
+  <path d="M260,22 Q276,72 260,122" fill="#ffcdd2" stroke="#c62828" stroke-width="2.5"/>
+  <line x1="220" y1="22" x2="260" y2="22" stroke="#c62828" stroke-width="2.5"/>
+  <line x1="220" y1="122" x2="260" y2="122" stroke="#c62828" stroke-width="2.5"/>
+  <text x="226" y="76" fill="#c62828" font-weight="bold">凹</text>
+  <text x="218" y="140" fill="#546e7a">中間薄</text>
+  <g stroke="#f59e0b" stroke-width="2" opacity="0.9">
+    <line x1="30" y1="50" x2="240" y2="50"/><line x1="30" y1="72" x2="240" y2="72"/><line x1="30" y1="94" x2="240" y2="94"/>
+  </g>
+  <line x1="240" y1="50" x2="400" y2="32" stroke="#ef4444" stroke-width="2"/>
+  <line x1="240" y1="72" x2="400" y2="72" stroke="#ef4444" stroke-width="2"/>
+  <line x1="240" y1="94" x2="400" y2="112" stroke="#ef4444" stroke-width="2"/>
+  <text x="360" y="50" fill="#c62828" font-weight="bold">發散</text>
+  <text x="20" y="68" fill="#f9a825" font-weight="bold">平行光</text>
+</svg>` },
+  { icon:'📏', svg:`<svg viewBox="0 0 480 145" font-family="sans-serif" font-size="12">
+  <rect x="0" y="0" width="480" height="145" fill="#fff8e1" rx="8"/>
+  <text x="16" y="22" fill="#e65100" font-weight="bold" font-size="13">焦距 f：光心到焦點的距離</text>
+  <line x1="20" y1="75" x2="460" y2="75" stroke="#b0c4de" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="230" y1="22" x2="230" y2="128" stroke="#1565c0" stroke-width="5"/>
+  <polygon points="230,22 223,36 237,36" fill="#1565c0"/>
+  <polygon points="230,128 223,114 237,114" fill="#1565c0"/>
+  <circle cx="330" cy="75" r="6" fill="#f59e0b"/>
+  <text x="323" y="94" fill="#b45309" font-weight="bold">F（焦點）</text>
+  <g stroke="#f59e0b" stroke-width="2" opacity="0.85">
+    <line x1="40" y1="55" x2="230" y2="55"/><line x1="40" y1="75" x2="230" y2="75"/><line x1="40" y1="95" x2="230" y2="95"/>
+  </g>
+  <line x1="230" y1="55" x2="330" y2="75" stroke="#ef4444" stroke-width="2"/>
+  <line x1="230" y1="75" x2="330" y2="75" stroke="#ef4444" stroke-width="2"/>
+  <line x1="230" y1="95" x2="330" y2="75" stroke="#ef4444" stroke-width="2"/>
+  <line x1="230" y1="108" x2="330" y2="108" stroke="#e65100" stroke-width="2"/>
+  <line x1="230" y1="102" x2="230" y2="114" stroke="#e65100" stroke-width="2"/>
+  <line x1="330" y1="102" x2="330" y2="114" stroke="#e65100" stroke-width="2"/>
+  <text x="266" y="124" fill="#e65100" font-weight="bold">焦距 f</text>
+  <text x="228" y="17" fill="#1565c0" font-size="11">光心</text>
+</svg>` },
+  { icon:'🎯', svg:`<svg viewBox="0 0 480 145" font-family="sans-serif" font-size="12">
+  <rect x="0" y="0" width="480" height="145" fill="#fff8e1" rx="8"/>
+  <text x="16" y="22" fill="#b45309" font-weight="bold" font-size="13">焦點 F：平行光線折射後匯集的點</text>
+  <line x1="20" y1="72" x2="460" y2="72" stroke="#b0c4de" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="200" y1="22" x2="200" y2="122" stroke="#1565c0" stroke-width="5"/>
+  <polygon points="200,22 193,36 207,36" fill="#1565c0"/>
+  <polygon points="200,122 193,108 207,108" fill="#1565c0"/>
+  <g stroke="#f59e0b" stroke-width="2.2" opacity="0.9">
+    <line x1="30" y1="44" x2="200" y2="44"/><line x1="30" y1="58" x2="200" y2="58"/><line x1="30" y1="72" x2="200" y2="72"/>
+    <line x1="30" y1="86" x2="200" y2="86"/><line x1="30" y1="100" x2="200" y2="100"/>
+  </g>
+  <line x1="200" y1="44"  x2="310" y2="72" stroke="#ef4444" stroke-width="2.2"/>
+  <line x1="200" y1="58"  x2="310" y2="72" stroke="#f97316" stroke-width="2.2"/>
+  <line x1="200" y1="72"  x2="310" y2="72" stroke="#eab308" stroke-width="2.2"/>
+  <line x1="200" y1="86"  x2="310" y2="72" stroke="#22c55e" stroke-width="2.2"/>
+  <line x1="200" y1="100" x2="310" y2="72" stroke="#3b82f6" stroke-width="2.2"/>
+  <circle cx="310" cy="72" r="8" fill="#f59e0b" stroke="#b45309" stroke-width="2"/>
+  <text x="316" y="62" fill="#b45309" font-weight="bold">F</text>
+  <text x="316" y="78" fill="#b45309">焦點</text>
+  <text x="20" y="68" fill="#f9a825">平行光</text>
+</svg>` },
+  { icon:'📐', svg:`<svg viewBox="0 0 480 145" font-family="sans-serif" font-size="12">
+  <rect x="0" y="0" width="480" height="145" fill="#e8f3ff" rx="8"/>
+  <text x="16" y="22" fill="#1565c0" font-weight="bold" font-size="13">物距 u：物體到透鏡光心的距離</text>
+  <line x1="20" y1="80" x2="460" y2="80" stroke="#b0c4de" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="280" y1="25" x2="280" y2="130" stroke="#1565c0" stroke-width="4"/>
+  <polygon points="280,25 273,39 287,39" fill="#1565c0"/>
+  <polygon points="280,130 273,116 287,116" fill="#1565c0"/>
+  <line x1="100" y1="80" x2="100" y2="38" stroke="#f59e0b" stroke-width="3"/>
+  <polygon points="100,38 94,50 106,50" fill="#f59e0b"/>
+  <text x="78" y="30" fill="#92400e" font-weight="bold">物體</text>
+  <line x1="100" y1="100" x2="280" y2="100" stroke="#e65100" stroke-width="2"/>
+  <line x1="100" y1="94" x2="100" y2="106" stroke="#e65100" stroke-width="2"/>
+  <line x1="280" y1="94" x2="280" y2="106" stroke="#e65100" stroke-width="2"/>
+  <text x="168" y="118" fill="#e65100" font-weight="bold">物距 u</text>
+  <circle cx="340" cy="80" r="4" fill="#f59e0b"/>
+  <text x="334" y="97" fill="#b45309" font-size="11" font-weight="bold">F</text>
+  <text x="272" y="20" fill="#1565c0" font-size="11">光心</text>
+</svg>` },
+  { icon:'📏', svg:`<svg viewBox="0 0 480 145" font-family="sans-serif" font-size="12">
+  <rect x="0" y="0" width="480" height="145" fill="#e8f5e9" rx="8"/>
+  <text x="16" y="22" fill="#2e7d32" font-weight="bold" font-size="13">像距 v：成像位置到透鏡光心的距離</text>
+  <line x1="20" y1="80" x2="460" y2="80" stroke="#b0c4de" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="200" y1="25" x2="200" y2="130" stroke="#1565c0" stroke-width="4"/>
+  <polygon points="200,25 193,39 207,39" fill="#1565c0"/>
+  <polygon points="200,130 193,116 207,116" fill="#1565c0"/>
+  <line x1="60" y1="80" x2="60" y2="42" stroke="#f59e0b" stroke-width="3"/>
+  <polygon points="60,42 54,54 66,54" fill="#f59e0b"/>
+  <text x="38" y="34" fill="#92400e" font-weight="bold">物體</text>
+  <line x1="200" y1="100" x2="380" y2="100" stroke="#2e7d32" stroke-width="2"/>
+  <line x1="200" y1="94" x2="200" y2="106" stroke="#2e7d32" stroke-width="2"/>
+  <line x1="380" y1="94" x2="380" y2="106" stroke="#2e7d32" stroke-width="2"/>
+  <text x="268" y="118" fill="#2e7d32" font-weight="bold">像距 v</text>
+  <line x1="380" y1="80" x2="380" y2="100" stroke="#2e7d32" stroke-width="2.5" stroke-dasharray="4,2"/>
+  <polygon points="380,100 374,88 386,88" fill="#42a5f5" fill-opacity="0.7"/>
+  <text x="362" y="74" fill="#2e7d32" font-size="11">像的位置</text>
+  <text x="190" y="20" fill="#1565c0" font-size="11">光心</text>
+</svg>` },
+  { icon:'📺', svg:`<svg viewBox="0 0 480 145" font-family="sans-serif" font-size="12">
+  <rect x="0" y="0" width="480" height="145" fill="#e8f3ff" rx="8"/>
+  <text x="16" y="22" fill="#1565c0" font-weight="bold" font-size="13">實像：光線真正匯聚，可投影在螢幕上（倒立）</text>
+  <line x1="20" y1="80" x2="460" y2="80" stroke="#b0c4de" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="90" y1="80" x2="90" y2="46" stroke="#f59e0b" stroke-width="3"/>
+  <polygon points="90,46 84,58 96,58" fill="#f59e0b"/>
+  <text x="70" y="38" fill="#92400e">物體</text>
+  <line x1="230" y1="25" x2="230" y2="132" stroke="#1565c0" stroke-width="4"/>
+  <polygon points="230,25 223,39 237,39" fill="#1565c0"/>
+  <polygon points="230,132 223,118 237,118" fill="#1565c0"/>
+  <line x1="370" y1="52" x2="370" y2="130" stroke="#90a4ae" stroke-width="2" stroke-dasharray="3,2"/>
+  <line x1="230" y1="46" x2="370" y2="92" stroke="#ef4444" stroke-width="1.8"/>
+  <line x1="230" y1="80" x2="370" y2="80" stroke="#1565c0" stroke-width="1.8"/>
+  <line x1="90"  y1="46" x2="230" y2="46" stroke="#ef4444" stroke-width="1.8"/>
+  <line x1="90"  y1="46" x2="230" y2="80" stroke="#1565c0" stroke-width="1.8"/>
+  <line x1="370" y1="80" x2="370" y2="92" stroke="#2e7d32" stroke-width="3"/>
+  <polygon points="370,92 364,80 376,80" fill="#42a5f5" fill-opacity="0.8"/>
+  <text x="376" y="92" fill="#2e7d32" font-weight="bold">倒立實像</text>
+  <text x="352" y="42" fill="#1565c0" font-size="11">螢幕</text>
+  <text x="280" y="130" fill="#546e7a">✅ 可以被螢幕接住</text>
+</svg>` },
+  { icon:'👁️', svg:`<svg viewBox="0 0 480 145" font-family="sans-serif" font-size="12">
+  <rect x="0" y="0" width="480" height="145" fill="#f1f8e9" rx="8"/>
+  <text x="16" y="22" fill="#2e7d32" font-weight="bold" font-size="13">虛像：延伸線交匯，只能用眼睛觀察（正立）</text>
+  <line x1="20" y1="80" x2="460" y2="80" stroke="#b0c4de" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="240" y1="25" x2="240" y2="132" stroke="#1565c0" stroke-width="4"/>
+  <polygon points="240,25 233,39 247,39" fill="#1565c0"/>
+  <polygon points="240,132 233,118 247,118" fill="#1565c0"/>
+  <line x1="200" y1="80" x2="200" y2="52" stroke="#f59e0b" stroke-width="3"/>
+  <polygon points="200,52 194,64 206,64" fill="#f59e0b"/>
+  <text x="182" y="44" fill="#92400e">物體</text>
+  <line x1="200" y1="52" x2="240" y2="52" stroke="#ef4444" stroke-width="2"/>
+  <line x1="240" y1="52" x2="400" y2="38" stroke="#ef4444" stroke-width="2"/>
+  <line x1="240" y1="52" x2="110" y2="28" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.7"/>
+  <line x1="200" y1="52" x2="240" y2="80" stroke="#1565c0" stroke-width="2"/>
+  <line x1="240" y1="80" x2="400" y2="120" stroke="#1565c0" stroke-width="2"/>
+  <line x1="240" y1="80" x2="110" y2="28" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.7"/>
+  <line x1="110" y1="80" x2="110" y2="28" stroke="#2e7d32" stroke-width="2.5" stroke-dasharray="4,3"/>
+  <polygon points="110,28 104,40 116,40" fill="#2e7d32" fill-opacity="0.7"/>
+  <text x="52" y="22" fill="#2e7d32" font-weight="bold">虛像（正立）</text>
+  <ellipse cx="430" cy="80" rx="24" ry="16" fill="#fff8e1" stroke="#f59e0b" stroke-width="1.5"/>
+  <circle cx="432" cy="80" r="7" fill="#42a5f5" opacity="0.8"/>
+  <circle cx="433" cy="79" r="4" fill="#1a2b4a"/>
+  <text x="406" y="108" fill="#92400e">眼睛</text>
+  <text x="60" y="130" fill="#546e7a">❌ 不能被螢幕接住（虛線為延伸線，非真實光線）</text>
+</svg>` },
+  { icon:'🙃', svg:`<svg viewBox="0 0 480 145" font-family="sans-serif" font-size="12">
+  <rect x="0" y="0" width="480" height="145" fill="#fff3e0" rx="8"/>
+  <text x="16" y="22" fill="#e65100" font-weight="bold" font-size="13">倒立的像：像的方向與物體上下左右相反</text>
+  <line x1="20" y1="80" x2="460" y2="80" stroke="#b0c4de" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="90" y1="80" x2="90" y2="38" stroke="#f59e0b" stroke-width="4"/>
+  <polygon points="90,38 83,52 97,52" fill="#f59e0b"/>
+  <text x="70" y="30" fill="#92400e" font-weight="bold">物體</text>
+  <text x="68" y="96" fill="#92400e">（正立）</text>
+  <line x1="230" y1="22" x2="230" y2="132" stroke="#1565c0" stroke-width="4"/>
+  <polygon points="230,22 223,36 237,36" fill="#1565c0"/>
+  <polygon points="230,132 223,118 237,118" fill="#1565c0"/>
+  <line x1="380" y1="80" x2="380" y2="122" stroke="#ef4444" stroke-width="4"/>
+  <polygon points="380,122 373,108 387,108" fill="#ef4444"/>
+  <text x="356" y="138" fill="#c62828" font-weight="bold">倒立的像</text>
+  <text x="356" y="76" fill="#c62828">（翻轉）</text>
+  <path d="M110,60 Q230,40 360,90" stroke="#90a4ae" stroke-width="1.5" fill="none" stroke-dasharray="5,3"/>
+  <polygon points="360,90 350,86 356,98" fill="#90a4ae"/>
+  <text x="185" y="38" fill="#546e7a">折射後翻轉</text>
+</svg>` },
+  { icon:'🙂', svg:`<svg viewBox="0 0 480 145" font-family="sans-serif" font-size="12">
+  <rect x="0" y="0" width="480" height="145" fill="#e8f5e9" rx="8"/>
+  <text x="16" y="22" fill="#2e7d32" font-weight="bold" font-size="13">正立的像：像的方向與物體相同（不翻轉）</text>
+  <line x1="20" y1="100" x2="460" y2="100" stroke="#b0c4de" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="90" y1="100" x2="90" y2="65" stroke="#f59e0b" stroke-width="4"/>
+  <polygon points="90,65 83,77 97,77" fill="#f59e0b"/>
+  <text x="68" y="57" fill="#92400e" font-weight="bold">物體</text>
+  <line x1="230" y1="22" x2="230" y2="132" stroke="#1565c0" stroke-width="4"/>
+  <polygon points="230,22 223,36 237,36" fill="#1565c0"/>
+  <polygon points="230,132 223,118 237,118" fill="#1565c0"/>
+  <line x1="370" y1="100" x2="370" y2="44" stroke="#2e7d32" stroke-width="4"/>
+  <polygon points="370,44 363,56 377,56" fill="#2e7d32"/>
+  <text x="348" y="36" fill="#166534" font-weight="bold">正立的像</text>
+  <text x="352" y="122" fill="#166534">（放大）</text>
+  <path d="M110,80 Q230,120 350,65" stroke="#90a4ae" stroke-width="1.5" fill="none" stroke-dasharray="5,3"/>
+  <polygon points="350,65 345,76 357,73" fill="#90a4ae"/>
+  <text x="178" y="130" fill="#546e7a">方向不變，大小放大（虛像）</text>
+</svg>` },
+  { icon:'💧', svg:`<svg viewBox="0 0 480 145" font-family="sans-serif" font-size="12">
+  <rect x="0" y="0" width="480" height="145" fill="#e3f2fd" rx="8"/>
+  <text x="16" y="22" fill="#1565c0" font-weight="bold" font-size="13">折射：光線進入不同介質時改變方向</text>
+  <rect x="200" y="0" width="280" height="145" fill="rgba(144,202,249,0.25)"/>
+  <line x1="200" y1="0" x2="200" y2="145" stroke="#42a5f5" stroke-width="2.5" stroke-dasharray="6,3"/>
+  <text x="50" y="72" fill="#546e7a" font-weight="bold">空氣</text>
+  <text x="320" y="72" fill="#1565c0" font-weight="bold">玻璃（透鏡）</text>
+  <line x1="200" y1="72" x2="460" y2="72" stroke="#90a4ae" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="60" y1="20" x2="200" y2="72" stroke="#fdd835" stroke-width="3"/>
+  <polygon points="200,72 188,64 194,76" fill="#fdd835"/>
+  <line x1="200" y1="72" x2="340" y2="108" stroke="#f97316" stroke-width="3"/>
+  <polygon points="340,108 328,100 334,112" fill="#f97316"/>
+  <text x="30" y="30" fill="#fdd835" font-weight="bold">入射光</text>
+  <text x="342" y="118" fill="#f97316" font-weight="bold">折射光</text>
+  <line x1="200" y1="22" x2="200" y2="122" stroke="#90a4ae" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <text x="205" y="16" fill="#90a4ae">法線</text>
+  <path d="M200,52 A20,20 0 0,1 212,66" fill="none" stroke="#fdd835" stroke-width="1.5"/>
+  <text x="214" y="55" fill="#fdd835" font-size="11">θ₁</text>
+  <path d="M200,72 A25,25 0 0,1 217,84" fill="none" stroke="#f97316" stroke-width="1.5"/>
+  <text x="218" y="85" fill="#f97316" font-size="11">θ₂</text>
+  <text x="30" y="130" fill="#546e7a">光速在玻璃中較慢，方向偏折（θ₂ ≠ θ₁）</text>
+</svg>` },
+  { icon:'⭕', svg:`<svg viewBox="0 0 480 145" font-family="sans-serif" font-size="12">
+  <rect x="0" y="0" width="480" height="145" fill="#f3e8ff" rx="8"/>
+  <text x="16" y="22" fill="#6a1b9a" font-weight="bold" font-size="13">光心 O：透鏡正中央，通過光心的光線方向不改變</text>
+  <line x1="20" y1="72" x2="460" y2="72" stroke="#b0c4de" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="230" y1="18" x2="230" y2="128" stroke="#6a1b9a" stroke-width="4"/>
+  <polygon points="230,18 223,32 237,32" fill="#6a1b9a"/>
+  <polygon points="230,128 223,114 237,114" fill="#6a1b9a"/>
+  <circle cx="230" cy="72" r="8" fill="#6a1b9a" stroke="#fff" stroke-width="2"/>
+  <text x="238" y="68" fill="#6a1b9a" font-weight="bold">O（光心）</text>
+  <line x1="40" y1="42" x2="420" y2="102" stroke="#1565c0" stroke-width="3"/>
+  <polygon points="420,102 406,100 412,112" fill="#1565c0"/>
+  <text x="30" y="36" fill="#1565c0" font-weight="bold">通過光心的光線</text>
+  <text x="310" y="118" fill="#1565c0">方向不改變</text>
+  <circle cx="230" cy="72" r="8" fill="#6a1b9a" stroke="#fff" stroke-width="2"/>
+  <text x="80" y="140" fill="#546e7a">通過光心的光線是直線穿過透鏡，不發生折射</text>
+</svg>` },
+  { icon:'➡️', svg:`<svg viewBox="0 0 480 145" font-family="sans-serif" font-size="12">
+  <rect x="0" y="0" width="480" height="145" fill="#f5f0ff" rx="8"/>
+  <text x="16" y="22" fill="#6a1b9a" font-weight="bold" font-size="13">主軸（光軸）：通過光心並垂直透鏡的假想直線</text>
+  <line x1="20" y1="75" x2="460" y2="75" stroke="#6a1b9a" stroke-width="2.5" stroke-dasharray="8,4"/>
+  <polygon points="460,75 446,69 446,81" fill="#6a1b9a"/>
+  <text x="434" y="68" fill="#6a1b9a" font-weight="bold">主軸</text>
+  <line x1="240" y1="18" x2="240" y2="132" stroke="#1565c0" stroke-width="4"/>
+  <polygon points="240,18 233,32 247,32" fill="#1565c0"/>
+  <polygon points="240,132 233,118 247,118" fill="#1565c0"/>
+  <circle cx="240" cy="75" r="5" fill="#6a1b9a"/>
+  <text x="246" y="68" fill="#6a1b9a" font-size="11">O</text>
+  <circle cx="160" cy="75" r="5" fill="#f59e0b"/>
+  <text x="150" y="92" fill="#b45309" font-weight="bold">F</text>
+  <circle cx="320" cy="75" r="5" fill="#f59e0b"/>
+  <text x="310" y="92" fill="#b45309" font-weight="bold">F</text>
+  <circle cx="80"  cy="75" r="4" fill="#90a4ae"/>
+  <text x="70"  y="92" fill="#546e7a" font-size="11">2F</text>
+  <circle cx="400" cy="75" r="4" fill="#90a4ae"/>
+  <text x="390" y="92" fill="#546e7a" font-size="11">2F</text>
+  <text x="80" y="128" fill="#546e7a">焦點、物距、像距都沿主軸量測</text>
+</svg>` },
+  { icon:'🔻', svg:`<svg viewBox="0 0 480 145" font-family="sans-serif" font-size="12">
+  <rect x="0" y="0" width="480" height="145" fill="#e3f2fd" rx="8"/>
+  <text x="16" y="22" fill="#1565c0" font-weight="bold" font-size="13">縮小的像：像比物體小，物距 &gt; 2f 時產生</text>
+  <line x1="20" y1="85" x2="460" y2="85" stroke="#b0c4de" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="240" y1="22" x2="240" y2="132" stroke="#1565c0" stroke-width="4"/>
+  <polygon points="240,22 233,36 247,36" fill="#1565c0"/>
+  <polygon points="240,132 233,118 247,118" fill="#1565c0"/>
+  <line x1="70"  y1="85" x2="70"  y2="32" stroke="#f59e0b" stroke-width="4"/>
+  <polygon points="70,32 63,44 77,44" fill="#f59e0b"/>
+  <text x="50" y="24" fill="#92400e" font-weight="bold">物體</text>
+  <line x1="340" y1="85" x2="340" y2="68" stroke="#ef4444" stroke-width="3"/>
+  <polygon points="340,68 334,78 346,78" fill="#ef4444" fill-opacity="0.75"/>
+  <text x="316" y="62" fill="#c62828" font-weight="bold">倒立縮小像</text>
+  <line x1="70"  y1="32" x2="240" y2="32" stroke="#ef4444" stroke-width="1.5" opacity="0.7"/>
+  <line x1="240" y1="32" x2="340" y2="68" stroke="#ef4444" stroke-width="1.5" opacity="0.7"/>
+  <line x1="70"  y1="32" x2="240" y2="85" stroke="#1565c0" stroke-width="1.5" opacity="0.7"/>
+  <line x1="240" y1="85" x2="340" y2="85" stroke="#1565c0" stroke-width="1.5" opacity="0.7"/>
+  <line x1="70"  y1="105" x2="240" y2="105" stroke="#e65100" stroke-width="1.5"/>
+  <text x="140" y="120" fill="#e65100">物距 &gt; 2f</text>
+  <text x="300" y="130" fill="#546e7a">→ 縮小實像</text>
+</svg>` },
+  { icon:'🔎', svg:`<svg viewBox="0 0 480 145" font-family="sans-serif" font-size="12">
+  <rect x="0" y="0" width="480" height="145" fill="#e8f5e9" rx="8"/>
+  <text x="16" y="22" fill="#2e7d32" font-weight="bold" font-size="13">放大的像：像比物體大（實像或虛像均可）</text>
+  <line x1="20" y1="85" x2="460" y2="85" stroke="#b0c4de" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="200" y1="22" x2="200" y2="132" stroke="#1565c0" stroke-width="4"/>
+  <polygon points="200,22 193,36 207,36" fill="#1565c0"/>
+  <polygon points="200,132 193,118 207,118" fill="#1565c0"/>
+  <line x1="140" y1="85" x2="140" y2="62" stroke="#f59e0b" stroke-width="3"/>
+  <polygon points="140,62 134,74 146,74" fill="#f59e0b"/>
+  <text x="118" y="54" fill="#92400e">物體</text>
+  <line x1="360" y1="85" x2="360" y2="36" stroke="#2e7d32" stroke-width="4"/>
+  <polygon points="360,36 352,50 368,50" fill="#2e7d32" fill-opacity="0.8"/>
+  <text x="336" y="28" fill="#166534" font-weight="bold">放大倒立實像</text>
+  <line x1="140" y1="62" x2="200" y2="62" stroke="#ef4444" stroke-width="1.5" opacity="0.7"/>
+  <line x1="200" y1="62" x2="360" y2="36" stroke="#ef4444" stroke-width="1.5" opacity="0.7"/>
+  <line x1="140" y1="62" x2="200" y2="85" stroke="#1565c0" stroke-width="1.5" opacity="0.7"/>
+  <line x1="200" y1="85" x2="360" y2="85" stroke="#1565c0" stroke-width="1.5" opacity="0.7"/>
+  <text x="90" y="130" fill="#546e7a">f &lt; 物距 &lt; 2f → 倒立放大實像（投影機）｜物距 &lt; f → 正立放大虛像（放大鏡）</text>
+</svg>` },
+  { icon:'🖼️', svg:`<svg viewBox="0 0 480 145" font-family="sans-serif" font-size="12">
+  <rect x="0" y="0" width="480" height="145" fill="#f8f0ff" rx="8"/>
+  <text x="16" y="20" fill="#6a1b9a" font-weight="bold" font-size="13">成像：物距決定像的種類</text>
+  <line x1="20" y1="78" x2="460" y2="78" stroke="#b0c4de" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="240" y1="18" x2="240" y2="130" stroke="#1565c0" stroke-width="4"/>
+  <polygon points="240,18 233,32 247,32" fill="#1565c0"/>
+  <polygon points="240,130 233,116 247,116" fill="#1565c0"/>
+  <circle cx="180" cy="78" r="4" fill="#f59e0b"/><text x="174" y="94" fill="#b45309" font-weight="bold">F</text>
+  <circle cx="300" cy="78" r="4" fill="#f59e0b"/><text x="294" y="94" fill="#b45309" font-weight="bold">F</text>
+  <circle cx="120" cy="78" r="3" fill="#90a4ae"/><text x="110" y="94" fill="#546e7a" font-size="10">2F</text>
+  <circle cx="360" cy="78" r="3" fill="#90a4ae"/><text x="350" y="94" fill="#546e7a" font-size="10">2F</text>
+  <text x="24"  y="60" fill="#1565c0" font-size="10">倒縮</text>
+  <text x="130" y="60" fill="#0891b2" font-size="10">倒大</text>
+  <text x="192" y="60" fill="#d97706" font-size="10" font-weight="bold">模糊</text>
+  <text x="205" y="60" fill="#d97706" font-size="8">↓</text>
+  <text x="206" y="72" fill="#d97706" font-size="8">u=f</text>
+  <text x="44"  y="130" fill="#1565c0" font-size="11">u&gt;2f:倒縮實</text>
+  <text x="138" y="130" fill="#0891b2" font-size="11">f&lt;u&lt;2f:倒大實</text>
+  <text x="290" y="130" fill="#2e7d32" font-size="11">u&lt;f:正大虛</text>
+  <rect x="22" y="64" width="96" height="10" fill="rgba(21,101,192,0.12)" rx="3"/>
+  <rect x="125" y="64" width="54" height="10" fill="rgba(8,145,178,0.12)" rx="3"/>
+  <rect x="246" y="64" width="114" height="10" fill="rgba(46,125,50,0.12)" rx="3"/>
+</svg>` }
+];
+
+let qaActiveTerm=0, qaKw='', qaCatF='all';
+
+function buildQAPanel(){
+  renderQASidebar();
+  renderQAContentPanel();
+}
+
+function renderQASidebar(){
+  const kw=qaKw.trim().toLowerCase();
+  const list=document.getElementById('qaSbList');
+  const items=TERMS.map((t,i)=>({t,i})).filter(({t})=>{
+    const mc=qaCatF==='all'||t.cat===qaCatF;
+    const mk=!kw||t.term.includes(kw)||(t.en&&t.en.toLowerCase().includes(kw));
+    return mc&&mk;
+  });
+  if(!items.length){list.innerHTML='<div class="qa-none" style="padding:20px;font-size:14px;">😔 無符合結果</div>';return;}
+  list.innerHTML=items.map(({t,i})=>`
+    <div class="qa-si${i===qaActiveTerm?' on':''}" onclick="selectQATerm(${i})">
+      <span class="qi-badge ${t.cat}">${t.cat}</span>
+      <span class="qi-txt">${TERM_META[i]?TERM_META[i].icon:''} ${t.term}<br><span class="qi-en">${t.en}</span></span>
+    </div>`).join('');
+}
+
+function selectQATerm(i){
+  qaActiveTerm=i;
+  renderQASidebar();
+  renderQAContentPanel();
+}
+
+function renderQAContentPanel(){
+  const t=TERMS[qaActiveTerm], m=TERM_META[qaActiveTerm]||{};
+  const tags=t.tags.map(tg=>{
+    const [type,...rest]=tg.split(':'), txt=rest.join(':');
+    return `<span class="qp-tag ${type}">${type==='life'?'🌏 ':type==='exp'?'🔬 ':'💡 '}${txt}</span>`;
+  }).join('');
+  const badgeColor={'透鏡':'#1565c0','距離':'#e65100','成像':'#2e7d32','光學':'#6a1b9a'};
+  document.getElementById('qaPanel').innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+      <span style="background:${badgeColor[t.cat]||'#1565c0'};color:#fff;padding:3px 12px;border-radius:8px;font-size:13px;font-weight:800;">${t.cat}</span>
+      <span style="font-size:14px;color:#90a4ae;">${t.en}</span>
+    </div>
+    <div class="qp-title">${m.icon||''} ${t.term}</div>
+    <div class="kp-svg" style="margin-bottom:16px;">${m.svg||''}</div>
+    <div class="qp-def">${t.def}</div>
+    <div class="qp-tags">${tags}</div>
+    <div class="info-strip" style="margin-top:8px;">
+      <strong>🗺️ 速記口訣</strong>
+      u &gt; 2f → 倒縮實 ｜ u = 2f → 倒等實 ｜ f &lt; u &lt; 2f → 倒大實 ｜ u = f → 模糊 ｜ u &lt; f → 正大虛
+    </div>`;
+}
+
+function qaFilter(val){qaKw=val;renderQASidebar();}
+
+function qaFilterCat(cat,btn){
+  qaCatF=cat;
+  document.querySelectorAll('.qa-sb-cat').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderQASidebar();
+}
+
+// ─── TAB 5: QUIZ ───────────────────────────────────────────
+
+// ─── MAGNIFIER SIMULATION ──────────────────────────────────
+const magCanvas = document.getElementById('magC');
+const magCtx    = magCanvas.getContext('2d');
+let mX=400, mY=240, mPow=3, mR=80, mInside=false;
+let magMode=1;
+// Mode 2 state：放大鏡跟滑鼠走，滾輪控制鏡內倍率
+let m2Pow=3, m2Inside=false, m2TouchDist=0;
+
+function setMagMode(m){
+  magMode=m;
+  document.getElementById('mBtn1').classList.toggle('on',m===1);
+  document.getElementById('mBtn2').classList.toggle('on',m===2);
+  document.getElementById('magCtrl1').style.display=m===1?'flex':'none';
+  document.getElementById('magCtrl2').style.display=m===2?'flex':'none';
+  magCanvas.style.cursor='none';
+  if(m===1){ mInside=false; renderMag(); }
+  else      { m2Inside=false; renderMode2(); }
+}
+
+function resizeMag(){
+  const pw=magCanvas.parentElement.clientWidth-32;
+  magCanvas.width =Math.max(pw,320);
+  magCanvas.height=Math.round(magCanvas.width*0.58);
+  mR=Math.round(magCanvas.width*0.095);
+  mX=magCanvas.width/2; mY=magCanvas.height/2;
+  if(magMode===1) renderMag(); else renderMode2();
+}
+function setMagPow(v){
+  mPow=parseFloat(v);
+  document.getElementById('magPowLbl').textContent=mPow+'×';
+  renderMag();
+}
+function canvasXY(src){
+  const r=magCanvas.getBoundingClientRect();
+  return [(src.clientX-r.left)*(magCanvas.width/r.width),
+          (src.clientY-r.top) *(magCanvas.height/r.height)];
+}
+function magPos(e){
+  const src=e.touches?e.touches[0]:e;
+  [mX,mY]=canvasXY(src);
+}
+
+// ── Mode 1 events ──
+magCanvas.addEventListener('mousemove',  e=>{ if(magMode!==1)return; magPos(e); renderMag(); });
+magCanvas.addEventListener('mouseenter', ()=>{ if(magMode!==1)return; mInside=true; });
+magCanvas.addEventListener('mouseleave', ()=>{ if(magMode!==1)return; mInside=false; renderMag(); });
+magCanvas.addEventListener('touchmove',  e=>{ if(magMode!==1)return; e.preventDefault(); magPos(e); renderMag(); },{passive:false});
+magCanvas.addEventListener('touchstart', e=>{ if(magMode!==1)return; magPos(e); renderMag(); },{passive:true});
+
+// ── Mode 2 events：滑鼠移動放大鏡，滾輪改倍率 ──
+magCanvas.addEventListener('mousemove', e=>{
+  if(magMode!==2) return;
+  m2Inside=true; magPos(e); renderMode2();
+});
+magCanvas.addEventListener('mouseenter',()=>{ if(magMode!==2)return; m2Inside=true; });
+magCanvas.addEventListener('mouseleave',()=>{ if(magMode!==2)return; m2Inside=false; renderMode2(); });
+
+magCanvas.addEventListener('wheel', e=>{
+  if(magMode!==2) return;
+  e.preventDefault();
+  const step=e.deltaY<0?0.5:-0.5;
+  m2Pow=Math.round(Math.min(15,Math.max(2,m2Pow+step))*10)/10;
+  document.getElementById('m2ScaleLbl').textContent=m2Pow+'×';
+  renderMode2();
+},{passive:false});
+
+// Mode 2 touch：單指移動放大鏡，雙指縮放改倍率
+magCanvas.addEventListener('touchstart',e=>{
+  if(magMode!==2)return;
+  m2Inside=true;
+  if(e.touches.length===2){
+    m2TouchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+  } else { magPos(e); renderMode2(); }
+},{passive:true});
+magCanvas.addEventListener('touchmove',e=>{
+  if(magMode!==2)return; e.preventDefault();
+  if(e.touches.length===2){
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    if(m2TouchDist>0){
+      const ns=Math.round(Math.min(15,Math.max(2,m2Pow*(d/m2TouchDist)))*10)/10;
+      m2Pow=ns; m2TouchDist=d;
+      document.getElementById('m2ScaleLbl').textContent=m2Pow+'×';
+    }
+    // center of two fingers = glass position
+    const cx=(canvasXY(e.touches[0])[0]+canvasXY(e.touches[1])[0])/2;
+    const cy=(canvasXY(e.touches[0])[1]+canvasXY(e.touches[1])[1])/2;
+    mX=cx; mY=cy;
+  } else { magPos(e); }
+  renderMode2();
+},{passive:false});
+magCanvas.addEventListener('touchend',()=>{ m2TouchDist=0; },{passive:true});
+
+// ── Mode 2 render：與 Mode 1 相同的放大鏡外觀，但倍率用 m2Pow ──
+function renderMode2(){
+  const W=magCanvas.width, H=magCanvas.height;
+  magCtx.clearRect(0,0,W,H);
+  drawPoster(magCtx,W,H);
+  if(!m2Inside) return;
+
+  // magnified circle
+  magCtx.save();
+  magCtx.beginPath(); magCtx.arc(mX,mY,mR,0,Math.PI*2); magCtx.clip();
+  magCtx.fillStyle='rgba(220,240,255,0.06)'; magCtx.fill();
+  magCtx.translate(mX,mY); magCtx.scale(m2Pow,m2Pow); magCtx.translate(-mX,-mY);
+  drawPoster(magCtx,W,H);
+  magCtx.restore();
+
+  // glass rim
+  magCtx.beginPath(); magCtx.arc(mX,mY,mR,0,Math.PI*2);
+  magCtx.strokeStyle='#9e9e9e'; magCtx.lineWidth=10; magCtx.stroke();
+  magCtx.strokeStyle='#e0e0e0'; magCtx.lineWidth=4;  magCtx.stroke();
+
+  // handle
+  const ha=Math.PI*0.45, hLen=mR*0.7;
+  magCtx.lineCap='round';
+  magCtx.strokeStyle='#6d4c41'; magCtx.lineWidth=mR*0.19;
+  magCtx.beginPath();
+  magCtx.moveTo(mX+Math.cos(ha)*(mR-4),mY+Math.sin(ha)*(mR-4));
+  magCtx.lineTo(mX+Math.cos(ha)*(mR+hLen),mY+Math.sin(ha)*(mR+hLen));
+  magCtx.stroke();
+  magCtx.strokeStyle='#4e342e'; magCtx.lineWidth=mR*0.09;
+  magCtx.beginPath();
+  magCtx.moveTo(mX+Math.cos(ha)*mR,mY+Math.sin(ha)*mR);
+  magCtx.lineTo(mX+Math.cos(ha)*(mR+hLen-4),mY+Math.sin(ha)*(mR+hLen-4));
+  magCtx.stroke();
+
+  // shine
+  magCtx.save();
+  magCtx.beginPath(); magCtx.arc(mX,mY,mR-5,0,Math.PI*2); magCtx.clip();
+  magCtx.fillStyle='rgba(255,255,255,0.13)';
+  magCtx.beginPath(); magCtx.ellipse(mX-mR*0.28,mY-mR*0.28,mR*0.32,mR*0.15,-Math.PI/4,0,Math.PI*2); magCtx.fill();
+  magCtx.restore();
+
+  // 倍率標籤（貼在放大鏡圓圈右下角）
+  const lbl=m2Pow+'×';
+  magCtx.font=`bold ${Math.round(mR*0.28)}px sans-serif`;
+  const tw=magCtx.measureText(lbl).width;
+  const bx=mX+mR*0.55, by=mY+mR*0.55;
+  magCtx.fillStyle='rgba(21,101,192,0.88)';
+  magCtx.beginPath(); magCtx.roundRect(bx-4,by-mR*0.28-2,tw+16,mR*0.32+6,6); magCtx.fill();
+  magCtx.fillStyle='#fff'; magCtx.textAlign='left';
+  magCtx.fillText(lbl,bx+4,by);
+}
+
+function renderMag(){
+  const W=magCanvas.width, H=magCanvas.height;
+  magCtx.clearRect(0,0,W,H);
+  drawPoster(magCtx,W,H);
+  if(!mInside) return;
+
+  // ── magnified circle ──
+  magCtx.save();
+  magCtx.beginPath(); magCtx.arc(mX,mY,mR,0,Math.PI*2); magCtx.clip();
+  magCtx.fillStyle='rgba(220,240,255,0.06)'; magCtx.fill();
+  magCtx.translate(mX,mY); magCtx.scale(mPow,mPow); magCtx.translate(-mX,-mY);
+  drawPoster(magCtx,W,H);
+  magCtx.restore();
+
+  // ── glass rim ──
+  magCtx.beginPath(); magCtx.arc(mX,mY,mR,0,Math.PI*2);
+  magCtx.strokeStyle='#9e9e9e'; magCtx.lineWidth=10; magCtx.stroke();
+  magCtx.strokeStyle='#e0e0e0'; magCtx.lineWidth=4;  magCtx.stroke();
+
+  // ── handle ──
+  const ha=Math.PI*0.45, hLen=mR*0.7;
+  magCtx.lineCap='round';
+  magCtx.strokeStyle='#6d4c41'; magCtx.lineWidth=mR*0.19;
+  magCtx.beginPath();
+  magCtx.moveTo(mX+Math.cos(ha)*(mR-4), mY+Math.sin(ha)*(mR-4));
+  magCtx.lineTo(mX+Math.cos(ha)*(mR+hLen), mY+Math.sin(ha)*(mR+hLen));
+  magCtx.stroke();
+  magCtx.strokeStyle='#4e342e'; magCtx.lineWidth=mR*0.09;
+  magCtx.beginPath();
+  magCtx.moveTo(mX+Math.cos(ha)*(mR),     mY+Math.sin(ha)*(mR));
+  magCtx.lineTo(mX+Math.cos(ha)*(mR+hLen-4), mY+Math.sin(ha)*(mR+hLen-4));
+  magCtx.stroke();
+
+  // ── glass shine ──
+  magCtx.save();
+  magCtx.beginPath(); magCtx.arc(mX,mY,mR-5,0,Math.PI*2); magCtx.clip();
+  magCtx.fillStyle='rgba(255,255,255,0.13)';
+  magCtx.beginPath(); magCtx.ellipse(mX-mR*0.28,mY-mR*0.28,mR*0.32,mR*0.15,-Math.PI/4,0,Math.PI*2); magCtx.fill();
+  magCtx.restore();
+}
+
+// ─── POSTER DRAWING ────────────────────────────────────────
+function drawPoster(c,W,H){
+  const s=W/800;
+  // sky
+  const sky=c.createLinearGradient(0,0,0,H*0.62);
+  sky.addColorStop(0,'#64B5F6'); sky.addColorStop(1,'#E1F5FE');
+  c.fillStyle=sky; c.fillRect(0,0,W,H*0.62);
+  // ground
+  const gnd=c.createLinearGradient(0,H*0.55,0,H);
+  gnd.addColorStop(0,'#8BC34A'); gnd.addColorStop(0.5,'#7CB342'); gnd.addColorStop(1,'#558B2F');
+  c.fillStyle=gnd; c.fillRect(0,H*0.55,W,H*0.45);
+  // horizon wave
+  c.fillStyle='#9CCC65'; c.beginPath(); c.moveTo(0,H*0.58);
+  for(let x=0;x<=W;x+=12) c.lineTo(x,H*0.565+Math.sin(x*0.017)*H*0.022);
+  c.lineTo(W,H); c.lineTo(0,H); c.closePath(); c.fill();
+  // mountains
+  [[0.28,0.58,0.40,0.26,0.52,0.58,'#B0BEC5'],[0.44,0.58,0.58,0.20,0.72,0.58,'#90A4AE']].forEach(([x1,y1,xp,yp,x2,y2,col])=>{
+    c.fillStyle=col; c.beginPath(); c.moveTo(W*x1,H*y1); c.lineTo(W*xp,H*yp); c.lineTo(W*x2,H*y2); c.fill();
+  });
+  c.fillStyle='#fff';
+  [[0.40,0.26,0.36,0.33,0.44,0.33],[0.58,0.20,0.54,0.28,0.62,0.28]].forEach(([px,py,l1x,l1y,l2x,l2y])=>{
+    c.beginPath(); c.moveTo(W*px,H*py); c.lineTo(W*l1x,H*l1y); c.lineTo(W*l2x,H*l2y); c.fill();
+  });
+  // sun
+  c.fillStyle='#FFD600'; c.beginPath(); c.arc(W*0.88,H*0.09,H*0.062,0,Math.PI*2); c.fill();
+  c.strokeStyle='#FFF176'; c.lineWidth=s*2;
+  for(let i=0;i<8;i++){const a=i*Math.PI/4; c.beginPath(); c.moveTo(W*0.88+Math.cos(a)*H*0.083,H*0.09+Math.sin(a)*H*0.083); c.lineTo(W*0.88+Math.cos(a)*H*0.11,H*0.09+Math.sin(a)*H*0.11); c.stroke();}
+  // clouds
+  pCloud(c,W*0.22,H*0.12,s*0.9); pCloud(c,W*0.50,H*0.07,s*0.65); pCloud(c,W*0.70,H*0.13,s*0.55);
+  // big oak tree
+  c.fillStyle='#6D4C41'; c.fillRect(W*0.145,H*0.43,s*25,H*0.22);
+  [[W*0.157,H*0.29,H*0.135,'#2E7D32'],[W*0.105,H*0.37,H*0.098,'#2E7D32'],[W*0.208,H*0.37,H*0.098,'#2E7D32'],[W*0.157,H*0.21,H*0.085,'#1B5E20'],[W*0.157,H*0.31,H*0.11,'#388E3C']].forEach(([x,y,r,col])=>{
+    c.fillStyle=col; c.beginPath(); c.arc(x,y,r,0,Math.PI*2); c.fill();
+  });
+  pLabel(c,W*0.07,H*0.18,'大樹 Oak',`常綠植物,提供棲息地`,s,'#1B5E20');
+  // pine tree
+  c.fillStyle='#5D4037'; c.beginPath(); c.moveTo(W*0.82-s*7,H*0.72); c.lineTo(W*0.82+s*7,H*0.72); c.lineTo(W*0.82+s*5,H*0.47); c.lineTo(W*0.82-s*5,H*0.47); c.fill();
+  [[H*0.48,H*0.16,'#1B5E20'],[H*0.42,H*0.13,'#2E7D32'],[H*0.36,H*0.11,'#388E3C']].forEach(([base,ht,col],i)=>{
+    c.fillStyle=col; c.beginPath(); c.moveTo(W*0.82,H*0.47-ht); c.lineTo(W*0.73-i*s*2,base); c.lineTo(W*0.91+i*s*2,base); c.fill();
+  });
+  pLabel(c,W*0.74,H*0.19,'松樹 Pine',`針葉樹,四季常青`,s,'#1B5E20');
+  // pond
+  c.fillStyle='rgba(33,150,243,0.52)'; c.beginPath(); c.ellipse(W*0.5,H*0.785,W*0.125,H*0.072,0,0,Math.PI*2); c.fill();
+  c.strokeStyle='rgba(21,101,192,0.65)'; c.lineWidth=s*2; c.stroke();
+  c.fillStyle='rgba(255,255,255,0.18)'; c.beginPath(); c.ellipse(W*0.47,H*0.77,W*0.05,H*0.022,0,0,Math.PI*2); c.fill();
+  // lily pads
+  c.fillStyle='#558B2F'; c.beginPath(); c.ellipse(W*0.44,H*0.80,W*0.022,H*0.012,0,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(W*0.56,H*0.77,W*0.018,H*0.010,0,0,Math.PI*2); c.fill();
+  pLabel(c,W*0.437,H*0.87,'小水池 Pond',`水生生物的家`,s,'#0D47A1');
+  // flowers
+  pFlower(c,W*0.33,H*0.625,s,'#F06292','小花 Flower',`六瓣、花蜜豐富`);
+  pFlower(c,W*0.40,H*0.635,s,'#FFD600','野菊 Daisy',`向陽開放,種子會飄`);
+  pFlower(c,W*0.63,H*0.63,s,'#FF7043','橙花 Orange Flower',`吸引蜜蜂授粉`);
+  pFlower(c,W*0.70,H*0.64,s,'#E91E63','玫瑰 Rose',`有刺保護自己`);
+  pFlower(c,W*0.265,H*0.655,s*0.82,'#AB47BC','紫花 Violet',`低矮草花`);
+  // grass blades
+  c.strokeStyle='#558B2F'; c.lineWidth=s*2;
+  for(let i=0;i<40;i++){const gx=W*0.05+Math.random()*W*0.9,gy=H*0.6+Math.random()*H*0.3; c.beginPath(); c.moveTo(gx,gy); c.quadraticCurveTo(gx+(Math.random()-0.5)*s*12,gy-s*16,gx+(Math.random()-0.5)*s*6,gy-s*22); c.stroke();}
+  // animals
+  pButterfly(c,W*0.245,H*0.42,s);
+  pBird(c,W*0.60,H*0.17,s);
+  pFrog(c,W*0.415,H*0.715,s);
+  pSnail(c,W*0.595,H*0.685,s);
+  pLadybug(c,W*0.345,H*0.576,s);
+  pBee(c,W*0.665,H*0.574,s);
+  pMushroom(c,W*0.082,H*0.62,s); pMushroom(c,W*0.115,H*0.645,s*0.72);
+  pFish(c,W*0.468,H*0.775,s,'#FF7043'); pFish(c,W*0.535,H*0.800,s*0.78,'#42A5F5');
+  pDragonfly(c,W*0.552,H*0.635,s);
+  pEarthworm(c,W*0.295,H*0.73,s);
+  pCaterpillar(c,W*0.698,H*0.70,s);
+  pSpider(c,W*0.20,H*0.40,s);
+  // title
+  c.fillStyle='rgba(0,0,0,0.38)'; c.fillRect(0,H*0.906,W,H*0.094);
+  c.fillStyle='#fff'; c.font=`bold ${s*14}px sans-serif`; c.textAlign='center';
+  c.fillText('🌿 自然生態探索海報 ─ 移動放大鏡探索14種生物！',W/2,H*0.965);
+  c.textAlign='left';
+}
+
+// ── poster helpers ──────────────────────────────────────────
+function pLabel(c,x,y,name,desc,s,col){
+  c.fillStyle=col||'#1a2b4a'; c.font=`bold ${s*8.5}px sans-serif`; c.fillText(name,x,y);
+  c.fillStyle='#546e7a';      c.font=`${s*7}px sans-serif`;       c.fillText(desc,x,y+s*11);
+}
+function pCloud(c,cx,cy,s){
+  c.fillStyle='rgba(255,255,255,0.93)';
+  [[0,0,22],[-28,8,16],[28,8,16],[-14,-8,16],[14,-8,16]].forEach(([dx,dy,r])=>{
+    c.beginPath(); c.arc(cx+dx*s,cy+dy*s,r*s,0,Math.PI*2); c.fill();
+  });
+}
+function pFlower(c,cx,cy,s,col,name,desc){
+  const r=s*10, cr=s*6;
+  for(let i=0;i<6;i++){const a=i*Math.PI/3; c.fillStyle=col; c.globalAlpha=0.88; c.beginPath(); c.ellipse(cx+Math.cos(a)*r,cy+Math.sin(a)*r,s*7,s*4,a,0,Math.PI*2); c.fill();}
+  c.globalAlpha=1;
+  c.fillStyle='#FFF9C4'; c.beginPath(); c.arc(cx,cy,cr,0,Math.PI*2); c.fill();
+  c.fillStyle='#F57F17'; c.beginPath(); c.arc(cx,cy,cr*0.55,0,Math.PI*2); c.fill();
+  c.fillStyle='#1a2b4a'; c.font=`bold ${s*7.5}px sans-serif`; c.fillText(name,cx-s*16,cy+s*22);
+  c.fillStyle='#546e7a'; c.font=`${s*6.5}px sans-serif`; c.fillText(desc,cx-s*18,cy+s*32);
+}
+function pButterfly(c,cx,cy,s){
+  [[-1,1],[1,1],[-1,-1],[1,-1]].forEach(([sx,sy])=>{
+    c.fillStyle=sx<0?'rgba(255,152,0,0.82)':'rgba(255,213,79,0.82)';
+    c.beginPath(); c.ellipse(cx+sx*s*14,cy+sy*s*9,s*14,s*9,sx*0.42,0,Math.PI*2); c.fill();
+  });
+  c.fillStyle='rgba(0,0,0,0.6)';
+  [[-14,9],[14,9],[-14,-9],[14,-9]].forEach(([dx,dy])=>{ c.beginPath(); c.arc(cx+dx*s,cy+dy*s,s*3,0,Math.PI*2); c.fill();});
+  c.fillStyle='#4E342E'; c.beginPath(); c.ellipse(cx,cy,s*3,s*13,0,0,Math.PI*2); c.fill();
+  c.strokeStyle='#4E342E'; c.lineWidth=s;
+  [[cx-s*2,cy-s*13,cx-s*8,cy-s*22,cx-s*5,cy-s*26],[cx+s*2,cy-s*13,cx+s*8,cy-s*22,cx+s*5,cy-s*26]].forEach(([x1,y1,cx2,cy2,x3,y3])=>{
+    c.beginPath(); c.moveTo(x1,y1); c.quadraticCurveTo(cx2,cy2,x3,y3); c.stroke();
+    c.fillStyle='#FF6F00'; c.beginPath(); c.arc(x3,y3,s*2,0,Math.PI*2); c.fill();
+  });
+  pLabel(c,cx-s*20,cy+s*30,'蝴蝶 Butterfly','四翅、觸角、鱗粉',s,'#E65100');
+}
+function pBird(c,cx,cy,s){
+  c.fillStyle='#FF7043'; c.beginPath(); c.ellipse(cx,cy,s*10,s*6,-0.3,0,Math.PI*2); c.fill();
+  c.fillStyle='#FF8A65'; c.beginPath(); c.ellipse(cx-s*4,cy-s*4,s*8,s*4,-0.8,0,Math.PI); c.fill();
+  c.fillStyle='#FF7043'; c.beginPath(); c.arc(cx+s*10,cy-s*2,s*5,0,Math.PI*2); c.fill();
+  c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx+s*12,cy-s*3.5,s*1.5,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff'; c.beginPath(); c.arc(cx+s*12.5,cy-s*4,s*0.5,0,Math.PI*2); c.fill();
+  c.fillStyle='#FFB300'; c.beginPath(); c.moveTo(cx+s*15,cy-s*2); c.lineTo(cx+s*22,cy-s*0.5); c.lineTo(cx+s*15,cy); c.fill();
+  c.fillStyle='#E64A19'; c.beginPath(); c.moveTo(cx-s*10,cy); c.lineTo(cx-s*22,cy-s*4); c.lineTo(cx-s*20,cy+s*3); c.fill();
+  pLabel(c,cx-s*10,cy+s*18,'小鳥 Bird','羽毛、翅膀、喙',s,'#BF360C');
+}
+function pFrog(c,cx,cy,s){
+  c.fillStyle='#66BB6A'; c.beginPath(); c.ellipse(cx,cy,s*14,s*11,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#A5D6A7'; c.beginPath(); c.ellipse(cx,cy+s*2,s*9,s*7,0,0,Math.PI*2); c.fill();
+  [[cx-s*8,cy-s*10],[cx+s*8,cy-s*10]].forEach(([ex,ey])=>{
+    c.fillStyle='#388E3C'; c.beginPath(); c.arc(ex,ey,s*5,0,Math.PI*2); c.fill();
+    c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(ex,ey,s*2.5,0,Math.PI*2); c.fill();
+    c.fillStyle='#fff'; c.beginPath(); c.arc(ex+s,ey-s,s,0,Math.PI*2); c.fill();
+  });
+  c.strokeStyle='#2E7D32'; c.lineWidth=s*4; c.lineCap='round';
+  [[cx-s*12,cy+s*5,cx-s*20,cy+s*14,cx-s*26,cy+s*10],[cx+s*12,cy+s*5,cx+s*20,cy+s*14,cx+s*26,cy+s*10]].forEach(pts=>{
+    c.beginPath(); c.moveTo(pts[0],pts[1]); c.lineTo(pts[2],pts[3]); c.lineTo(pts[4],pts[5]); c.stroke();
+  });
+  pLabel(c,cx-s*14,cy+s*28,'青蛙 Frog','濕潤皮膚、跳躍力強',s,'#1B5E20');
+}
+function pSnail(c,cx,cy,s){
+  c.fillStyle='#C8A96E'; c.beginPath(); c.ellipse(cx-s*2,cy+s*8,s*16,s*7,0.15,0,Math.PI*2); c.fill();
+  c.fillStyle='#A1887F'; c.beginPath(); c.arc(cx+s*4,cy,s*10,0,Math.PI*2); c.fill();
+  c.strokeStyle='#795548'; c.lineWidth=s*2;
+  [7,4.5,2.5].forEach(r=>{ c.beginPath(); c.arc(cx+s*5,cy+s,r*s,0,-Math.PI*1.6,true); c.stroke();});
+  c.strokeStyle='#C8A96E'; c.lineWidth=s*1.5;
+  [[cx-s*8,cy+s*3,cx-s*14,cy-s*5,s*1.5],[cx-s*8,cy+s*3,cx-s*12,cy-s*3,s*1.5]].forEach(([x1,y1,x2,y2,r])=>{
+    c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2); c.stroke();
+    c.fillStyle='#333'; c.beginPath(); c.arc(x2,y2,r,0,Math.PI*2); c.fill();
+  });
+  pLabel(c,cx-s*14,cy+s*22,'蝸牛 Snail','螺旋貝殼、腹足運動',s,'#5D4037');
+}
+function pLadybug(c,cx,cy,s){
+  c.fillStyle='#E53935'; c.beginPath(); c.ellipse(cx,cy,s*9,s*7,0,0,Math.PI*2); c.fill();
+  c.strokeStyle='#1a2b4a'; c.lineWidth=s*1.5; c.beginPath(); c.moveTo(cx,cy-s*7); c.lineTo(cx,cy+s*7); c.stroke();
+  c.fillStyle='#1a2b4a';
+  [[-4,-2],[4,-2],[-4,3],[4,3],[0,-4.5]].forEach(([dx,dy])=>{ c.beginPath(); c.arc(cx+dx*s,cy+dy*s,s*1.8,0,Math.PI*2); c.fill();});
+  c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx,cy-s*8,s*4.5,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff'; [[-2.5,-9],[2.5,-9]].forEach(([dx,dy])=>{ c.beginPath(); c.arc(cx+dx*s,cy+dy*s,s*1.3,0,Math.PI*2); c.fill();});
+  c.strokeStyle='#1a2b4a'; c.lineWidth=s;
+  c.beginPath(); c.moveTo(cx-s*2,cy-s*12); c.lineTo(cx-s*5,cy-s*19); c.stroke();
+  c.beginPath(); c.moveTo(cx+s*2,cy-s*12); c.lineTo(cx+s*5,cy-s*19); c.stroke();
+  pLabel(c,cx-s*18,cy+s*18,'瓢蟲 Ladybug','7個黑點、鞘翅',s,'#B71C1C');
+}
+function pBee(c,cx,cy,s){
+  c.fillStyle='rgba(200,230,255,0.7)';
+  c.beginPath(); c.ellipse(cx-s*6,cy-s*8,s*10,s*5,-0.5,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx+s*6,cy-s*8,s*10,s*5,0.5,0,Math.PI*2); c.fill();
+  for(let i=0;i<3;i++){c.fillStyle=i%2===0?'#FFD600':'#1a2b4a'; c.beginPath(); c.ellipse(cx,cy-s*3+i*s*5,s*7,s*4,0.15,0,Math.PI*2); c.fill();}
+  c.fillStyle='#FFD600'; c.beginPath(); c.arc(cx,cy-s*11,s*5,0,Math.PI*2); c.fill();
+  c.fillStyle='#1a2b4a'; [[-2.5,-12],[2.5,-12]].forEach(([dx,dy])=>{ c.beginPath(); c.arc(cx+dx*s,cy+dy*s,s*1.5,0,Math.PI*2); c.fill();});
+  c.fillStyle='#FF8F00'; c.beginPath(); c.moveTo(cx,cy+s*10); c.lineTo(cx-s*2,cy+s*8); c.lineTo(cx+s*2,cy+s*8); c.fill();
+  c.strokeStyle='#1a2b4a'; c.lineWidth=s;
+  c.beginPath(); c.moveTo(cx-s*2,cy-s*16); c.quadraticCurveTo(cx-s*8,cy-s*22,cx-s*6,cy-s*26); c.stroke();
+  c.beginPath(); c.moveTo(cx+s*2,cy-s*16); c.quadraticCurveTo(cx+s*8,cy-s*22,cx+s*6,cy-s*26); c.stroke();
+  c.fillStyle='#FF6F00'; [[-6,-26],[6,-26]].forEach(([dx,dy])=>{ c.beginPath(); c.arc(cx+dx*s,cy+dy*s,s*2,0,Math.PI*2); c.fill();});
+  pLabel(c,cx-s*12,cy+s*22,'蜜蜂 Bee','黑黃條紋、螫針',s,'#F57F17');
+}
+function pMushroom(c,cx,cy,s){
+  c.fillStyle='#EFEBE9'; c.beginPath(); c.ellipse(cx,cy+s*2,s*6,s*10,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#E53935'; c.beginPath(); c.arc(cx,cy-s*6,s*12,Math.PI,0); c.closePath(); c.fill();
+  c.fillStyle='#fff'; [[0,-8],[-6,-4],[6,-4],[-3,-2],[3,-2]].forEach(([dx,dy])=>{ c.beginPath(); c.arc(cx+dx*s,cy+dy*s,s*1.8,0,Math.PI*2); c.fill();});
+  pLabel(c,cx-s*18,cy+s*19,'蕈菇 Mushroom','傘形、分解者',s,'#7B1FA2');
+}
+function pFish(c,cx,cy,s,col){
+  c.fillStyle=col; c.beginPath(); c.ellipse(cx,cy,s*11,s*5,0,0,Math.PI*2); c.fill();
+  c.beginPath(); c.moveTo(cx+s*11,cy); c.lineTo(cx+s*18,cy-s*5); c.lineTo(cx+s*18,cy+s*5); c.fill();
+  c.fillStyle='#fff'; c.beginPath(); c.arc(cx-s*5,cy-s*1.5,s*2.5,0,Math.PI*2); c.fill();
+  c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx-s*5,cy-s*1.5,s*1.5,0,Math.PI*2); c.fill();
+  c.fillStyle='rgba(255,255,255,0.7)'; c.beginPath(); c.arc(cx-s*4.5,cy-s*2,s*0.6,0,Math.PI*2); c.fill();
+  c.fillStyle=col+'99'; c.beginPath(); c.moveTo(cx-s*2,cy-s*5); c.quadraticCurveTo(cx+s*2,cy-s*12,cx+s*5,cy-s*5); c.fill();
+  pLabel(c,cx-s*8,cy+s*12,'魚 Fish','鰓、鰭、鱗片',s,'#0D47A1');
+}
+function pDragonfly(c,cx,cy,s){
+  c.fillStyle='rgba(178,235,242,0.72)';
+  c.beginPath(); c.ellipse(cx-s*14,cy,s*14,s*4,-0.15,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx+s*14,cy,s*14,s*4,0.15,0,Math.PI*2); c.fill();
+  c.fillStyle='rgba(178,235,242,0.50)';
+  c.beginPath(); c.ellipse(cx-s*12,cy+s*5,s*10,s*3,0.15,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx+s*12,cy+s*5,s*10,s*3,-0.15,0,Math.PI*2); c.fill();
+  c.fillStyle='#0097A7'; c.beginPath(); c.ellipse(cx,cy,s*4,s*4,0,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx+s*12,cy+s*1,s*12,s*2.5,0.1,0,Math.PI*2); c.fill();
+  c.fillStyle='#00838F'; c.beginPath(); c.arc(cx-s*5,cy,s*4,0,Math.PI*2); c.fill();
+  c.fillStyle='#1a2b4a'; [[-7,-2],[-4,-2]].forEach(([dx,dy])=>{ c.beginPath(); c.arc(cx+dx*s,cy+dy*s,s*1.5,0,Math.PI*2); c.fill();});
+  pLabel(c,cx-s*22,cy+s*19,'蜻蜓 Dragonfly','四翅、複眼',s,'#006064');
+}
+function pEarthworm(c,cx,cy,s){
+  c.strokeStyle='#C62828'; c.lineWidth=s*5; c.lineCap='round'; c.lineJoin='round';
+  c.beginPath(); c.moveTo(cx-s*22,cy); c.quadraticCurveTo(cx-s*10,cy-s*8,cx,cy); c.quadraticCurveTo(cx+s*10,cy+s*8,cx+s*22,cy); c.stroke();
+  c.strokeStyle='#EF9A9A'; c.lineWidth=s*2;
+  c.beginPath(); c.moveTo(cx-s*22,cy); c.quadraticCurveTo(cx-s*10,cy-s*8,cx,cy); c.quadraticCurveTo(cx+s*10,cy+s*8,cx+s*22,cy); c.stroke();
+  pLabel(c,cx-s*22,cy+s*14,'蚯蚓 Earthworm','分節、土壤改良者',s,'#7B1FA2');
+}
+function pCaterpillar(c,cx,cy,s){
+  const cols=['#66BB6A','#81C784','#4CAF50','#388E3C','#43A047'];
+  for(let i=4;i>=0;i--){
+    c.fillStyle=cols[i]; c.beginPath(); c.arc(cx-i*s*9+s*2,cy,s*7,0,Math.PI*2); c.fill();
+    c.strokeStyle='#2E7D32'; c.lineWidth=s; c.beginPath(); c.arc(cx-i*s*9+s*2,cy,s*7,0,Math.PI*2); c.stroke();
+  }
+  c.fillStyle='#FF7043'; c.beginPath(); c.arc(cx+s*16,cy,s*8,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff'; c.beginPath(); c.arc(cx+s*19,cy-s*4,s*2.5,0,Math.PI*2); c.fill();
+  c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx+s*19,cy-s*4,s*1.5,0,Math.PI*2); c.fill();
+  c.strokeStyle='#4E342E'; c.lineWidth=s*1.5;
+  [[cx+s*17,cy-s*8,cx+s*14,cy-s*16,cx+s*14,cy-s*16],[cx+s*20,cy-s*7,cx+s*22,cy-s*15,cx+s*22,cy-s*15]].forEach(([x1,y1,x2,y2,ex,ey])=>{
+    c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2); c.stroke();
+    c.fillStyle='#FF6F00'; c.beginPath(); c.arc(ex,ey,s*2,0,Math.PI*2); c.fill();
+  });
+  for(let i=0;i<4;i++){const lx=cx-i*s*9+s*2; c.strokeStyle='#2E7D32'; c.lineWidth=s*1.5; c.beginPath(); c.moveTo(lx-s*3,cy+s*7); c.lineTo(lx-s*5,cy+s*14); c.stroke(); c.beginPath(); c.moveTo(lx+s*3,cy+s*7); c.lineTo(lx+s*5,cy+s*14); c.stroke();}
+  pLabel(c,cx-s*24,cy+s*26,'毛毛蟲 Caterpillar','分節、多足、蛻變',s,'#2E7D32');
+}
+function pSpider(c,cx,cy,s){
+  c.strokeStyle='rgba(255,255,255,0.55)'; c.lineWidth=s*0.8;
+  for(let i=0;i<6;i++){const a=i*Math.PI/3; c.beginPath(); c.moveTo(cx,cy); c.lineTo(cx+Math.cos(a)*s*22,cy+Math.sin(a)*s*22); c.stroke();}
+  [8,15,22].forEach(r=>{ c.beginPath(); for(let i=0;i<=6;i++){const a=i*Math.PI/3; i===0?c.moveTo(cx+Math.cos(a)*r*s,cy+Math.sin(a)*r*s):c.lineTo(cx+Math.cos(a)*r*s,cy+Math.sin(a)*r*s);} c.closePath(); c.stroke();});
+  c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx,cy,s*4.5,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(cx,cy-s*6,s*3,0,Math.PI*2); c.fill();
+  c.strokeStyle='#1a2b4a'; c.lineWidth=s*1.2;
+  [[-1,-1],[1,-1],[-1.5,0.5],[1.5,0.5],[-1.2,1.2],[1.2,1.2],[-0.5,1.6],[0.5,1.6]].forEach(([dx,dy])=>{
+    c.beginPath(); c.moveTo(cx+dx*s*4,cy+dy*s*4); c.lineTo(cx+dx*s*16,cy+dy*s*10); c.stroke();
+  });
+  pLabel(c,cx-s*14,cy+s*32,'蜘蛛 Spider','8條腿、結蜘蛛網',s,'#4A148C');
+}
+
+// ─── INIT ──────────────────────────────────────────────────
+buildKnow();
+buildStory();
+buildQuiz();
+buildQAPanel();
+window.addEventListener('load',()=>{
+  resizeSim(); updateSim();
+  resizeRay(); updateRay();
+  resizeMag();
+});
+window.addEventListener('resize',()=>{
+  resizeSim(); updateSim();
+  resizeRay(); updateRay();
+  resizeMag();
+});
+</script>
+</body>
+</html>
