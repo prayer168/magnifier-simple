@@ -2796,12 +2796,12 @@ function drawMountain(c,W,H){
   c.fillStyle='rgba(180,200,220,0.12)'; c.fillRect(0,H*0.30,W,H*0.1);
   // pine trees (back row)
   [[0.06,0.55,0.8],[0.16,0.53,1.0],[0.88,0.55,0.9],[0.96,0.52,1.1]].forEach(([tx,ty,ts])=>{
-    pMtnPine(c,W*tx,H*ty,s*ts);
+    pMtnPine(c,W*tx,H*ty,s*ts,H);
   });
   // large maple trees (autumn)
-  [[W*0.28,H*0.62,s*1.1],[W*0.70,H*0.60,s*1.0]].forEach(([tx,ty,ts])=>pMaple(c,tx,ty,ts));
+  [[W*0.28,H*0.62,s*1.1],[W*0.70,H*0.60,s*1.0]].forEach(([tx,ty,ts])=>pMaple(c,tx,ty,ts,H));
   // pine trees (front)
-  [[0.04,0.72,1.2],[0.90,0.70,1.1]].forEach(([tx,ty,ts])=>pMtnPine(c,W*tx,H*ty,s*ts));
+  [[0.04,0.72,1.2],[0.90,0.70,1.1]].forEach(([tx,ty,ts])=>pMtnPine(c,W*tx,H*ty,s*ts,H));
   // stream
   c.fillStyle='rgba(100,181,246,0.6)'; c.beginPath();
   c.moveTo(W*0.48,H*0.62); c.quadraticCurveTo(W*0.50,H*0.75,W*0.46,H*0.90);
@@ -2818,14 +2818,14 @@ function drawMountain(c,W,H){
   c.fillText('🏔️ 高山森林海報 ─ 探索5種山林生物，找找彩蛋！',W/2,H*0.965);
   c.textAlign='left';
 }
-function pMtnPine(c,cx,cy,s){
+function pMtnPine(c,cx,cy,s,H){
   c.fillStyle='#5D4037'; c.beginPath(); c.rect(cx-s*4,cy,s*8,H-cy); c.fill();
   [['#1B5E20',0.45],['#2E7D32',0.30],['#388E3C',0.18]].forEach(([col,ht],i)=>{
     c.fillStyle=col; c.beginPath();
     c.moveTo(cx,cy-H*ht); c.lineTo(cx-s*(16-i*3),cy-H*ht*0.35+H*0.04*i); c.lineTo(cx+s*(16-i*3),cy-H*ht*0.35+H*0.04*i); c.fill();
   });
 }
-function pMaple(c,cx,cy,s){
+function pMaple(c,cx,cy,s,H){
   c.fillStyle='#5D4037'; c.fillRect(cx-s*12,cy,s*24,H-cy);
   [['#E64A19',cy-H*0.15,H*0.12],['#FF7043',cy-H*0.10,H*0.10],['#FF8A65',cy-H*0.18,H*0.09]].forEach(([col,ty,r])=>{
     c.fillStyle=col; c.beginPath(); c.arc(cx,ty,r,0,Math.PI*2); c.fill();
