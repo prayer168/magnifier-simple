@@ -162,6 +162,12 @@ tr:nth-child(even) td{background:#f5f9ff;}
 .mag-mode-btn.on{background:#1565c0;border-color:#1565c0;color:#fff;}
 .mag-ctrl-row{display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap;}
 .mag-ctrl-hint{font-size:14px;color:#7a8fad;padding:8px 14px;background:#f0f6ff;border-radius:8px;line-height:1.6;}
+/* Scene switcher */
+.scene-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;}
+.scene-btn{padding:7px 15px;font-size:14px;font-weight:700;border:2px solid #b0cef5;border-radius:9px;background:#fff;color:#5a6e90;cursor:pointer;font-family:inherit;transition:all .18s;}
+.scene-btn:hover{border-color:#1565c0;color:#1565c0;background:#f0f6ff;}
+.scene-btn.on{background:#1565c0;border-color:#1565c0;color:#fff;}
+@media(max-width:640px){.scene-btn{padding:5px 10px;font-size:13px;}}
 
 /* Story source citation */
 .kp-src{margin-top:14px;padding:10px 16px;background:#f0f4ff;border-left:4px solid #90a4ae;border-radius:8px;font-size:13px;color:#546e7a;line-height:1.7;}
@@ -331,6 +337,14 @@ canvas{display:block;width:100%;max-width:100%;border-radius:10px;}
       <button class="mag-mode-btn on" id="mBtn1" onclick="setMagMode(1)">🔍 放大鏡模式</button>
       <button class="mag-mode-btn"    id="mBtn2" onclick="setMagMode(2)">🖱️ 滾輪縮放模式</button>
     </div>
+    <!-- 場景切換 -->
+    <div class="scene-row">
+      <button class="scene-btn on" id="sBtn0" onclick="setScene(0)">🌿 自然生態</button>
+      <button class="scene-btn"    id="sBtn1" onclick="setScene(1)">❄️ 極地</button>
+      <button class="scene-btn"    id="sBtn2" onclick="setScene(2)">🌵 沙漠</button>
+      <button class="scene-btn"    id="sBtn3" onclick="setScene(3)">🌴 熱帶雨林</button>
+      <button class="scene-btn"    id="sBtn4" onclick="setScene(4)">🏔️ 高山森林</button>
+    </div>
     <!-- Canvas -->
     <canvas id="magC" style="cursor:none;display:block;width:100%;border-radius:10px;"></canvas>
     <!-- 模式1 控制列 -->
@@ -348,7 +362,7 @@ canvas{display:block;width:100%;max-width:100%;border-radius:10px;}
       </div>
       <span style="font-size:22px;font-weight:800;color:#1565c0;min-width:60px;text-align:right;" id="m2ScaleLbl">1×</span>
     </div>
-    <div style="font-size:14px;color:#7a8fad;margin-top:8px;">共 14 種生物，找找看！</div>
+    <div style="font-size:14px;color:#7a8fad;margin-top:8px;" id="sceneHint">🌿 自然生態：14 種生物，每個場景藏有一顆彩蛋，放大 8× 以上才看得到！</div>
   </div>
 </div>
 
@@ -1858,6 +1872,24 @@ let mX=400, mY=240, mPow=3, mR=80, mInside=false;
 let magMode=1;
 // Mode 2 state：放大鏡跟滑鼠走，滾輪控制鏡內倍率
 let m2Pow=3, m2Inside=false, m2TouchDist=0;
+// 場景與彩蛋（每個場景一顆極小彩蛋，需 8× 以上放大才看得到）
+let currentScene=0;
+const EGGS=[
+  {x:0.728,y:0.453},{x:0.183,y:0.618},{x:0.817,y:0.382},{x:0.352,y:0.232},{x:0.548,y:0.695}
+];
+const SCENE_HINTS=[
+  '🌿 自然生態：14 種生物，每個場景藏有一顆彩蛋，放大 8× 以上才看得到！',
+  '❄️ 極地：5 種極地生物，北極光閃耀，彩蛋藏在冰天雪地中！',
+  '🌵 沙漠：5 種沙漠生物，酷熱荒原，彩蛋藏在沙丘之間！',
+  '🌴 熱帶雨林：5 種雨林生物，層層林冠，彩蛋藏在高樹枝頭！',
+  '🏔️ 高山森林：5 種山林生物，霧氣瀰漫，彩蛋藏在林間！'
+];
+function setScene(n){
+  currentScene=n;
+  for(let i=0;i<5;i++){const b=document.getElementById('sBtn'+i);if(b)b.classList.toggle('on',i===n);}
+  const h=document.getElementById('sceneHint');if(h)h.textContent=SCENE_HINTS[n];
+  if(magMode===1)renderMag();else renderMode2();
+}
 
 function setMagMode(m){
   magMode=m;
@@ -2036,8 +2068,8 @@ function renderMag(){
   magCtx.restore();
 }
 
-// ─── POSTER DRAWING ────────────────────────────────────────
-function drawPoster(c,W,H){
+// ─── NATURE SCENE (original poster) ───────────────────────
+function drawNature(c,W,H){
   const s=W/800;
   // sky
   const sky=c.createLinearGradient(0,0,0,H*0.62);
@@ -2091,9 +2123,6 @@ function drawPoster(c,W,H){
   pFlower(c,W*0.63,H*0.63,s,'#FF7043','橙花 Orange Flower',`吸引蜜蜂授粉`);
   pFlower(c,W*0.70,H*0.64,s,'#E91E63','玫瑰 Rose',`有刺保護自己`);
   pFlower(c,W*0.265,H*0.655,s*0.82,'#AB47BC','紫花 Violet',`低矮草花`);
-  // grass blades
-  c.strokeStyle='#558B2F'; c.lineWidth=s*2;
-  for(let i=0;i<40;i++){const gx=W*0.05+Math.random()*W*0.9,gy=H*0.6+Math.random()*H*0.3; c.beginPath(); c.moveTo(gx,gy); c.quadraticCurveTo(gx+(Math.random()-0.5)*s*12,gy-s*16,gx+(Math.random()-0.5)*s*6,gy-s*22); c.stroke();}
   // animals
   pButterfly(c,W*0.245,H*0.42,s);
   pBird(c,W*0.60,H*0.17,s);
@@ -2110,7 +2139,7 @@ function drawPoster(c,W,H){
   // title
   c.fillStyle='rgba(0,0,0,0.38)'; c.fillRect(0,H*0.906,W,H*0.094);
   c.fillStyle='#fff'; c.font=`bold ${s*14}px sans-serif`; c.textAlign='center';
-  c.fillText('🌿 自然生態探索海報 ─ 移動放大鏡探索14種生物！',W/2,H*0.965);
+  c.fillText('🌿 自然生態海報 ─ 14種生物，別忘了找彩蛋！',W/2,H*0.965);
   c.textAlign='left';
 }
 
@@ -2274,6 +2303,642 @@ function pSpider(c,cx,cy,s){
     c.beginPath(); c.moveTo(cx+dx*s*4,cy+dy*s*4); c.lineTo(cx+dx*s*16,cy+dy*s*10); c.stroke();
   });
   pLabel(c,cx-s*14,cy+s*32,'蜘蛛 Spider','8條腿、結蜘蛛網',s,'#4A148C');
+}
+
+// ─── SCENE DISPATCHER + EASTER EGG ────────────────────────
+function drawPoster(c,W,H){
+  switch(currentScene){
+    case 1: drawArctic(c,W,H); break;
+    case 2: drawDesert(c,W,H); break;
+    case 3: drawRainforest(c,W,H); break;
+    case 4: drawMountain(c,W,H); break;
+    default: drawNature(c,W,H);
+  }
+  drawEgg(c,W,H,EGGS[currentScene]);
+}
+function drawEgg(c,W,H,pos){
+  // 極微小彩蛋：約 2.5px 半徑，需 8× 以上才看清楚
+  const ex=W*pos.x, ey=H*pos.y, r=2.4;
+  c.save(); c.globalAlpha=0.9;
+  // 四色寶石
+  ['#FFD700','#FF6B6B','#4ECDC4','#A8E6CF'].forEach((col,i)=>{
+    const a=i*Math.PI/2;
+    c.fillStyle=col;
+    c.beginPath(); c.arc(ex+Math.cos(a)*r*0.85,ey+Math.sin(a)*r*0.85,r*0.72,0,Math.PI*2); c.fill();
+  });
+  c.fillStyle='rgba(255,255,255,0.95)'; c.beginPath(); c.arc(ex,ey,r*0.55,0,Math.PI*2); c.fill();
+  c.globalAlpha=0.82; c.fillStyle='#FFD700';
+  c.font=`bold ${r*1.7}px sans-serif`; c.textAlign='left';
+  c.fillText('★彩蛋！',ex+r*2.5,ey+r*0.8);
+  c.globalAlpha=1; c.textAlign='left'; c.restore();
+}
+
+// ─── ARCTIC SCENE ──────────────────────────────────────────
+function drawArctic(c,W,H){
+  const s=W/800;
+  // night sky with aurora
+  const sky=c.createLinearGradient(0,0,0,H*0.58);
+  sky.addColorStop(0,'#0A1929'); sky.addColorStop(0.55,'#1A3A5C'); sky.addColorStop(1,'#4A90C4');
+  c.fillStyle=sky; c.fillRect(0,0,W,H*0.58);
+  // aurora borealis
+  c.save(); c.globalAlpha=0.28;
+  [['#69F0AE',0.05],['#40C4FF',0.15],['#CE93D8',0.26]].forEach(([col,yt])=>{
+    const g=c.createLinearGradient(0,0,W,0);
+    g.addColorStop(0,'transparent'); g.addColorStop(0.35,col); g.addColorStop(0.7,col); g.addColorStop(1,'transparent');
+    c.fillStyle=g; c.fillRect(0,H*yt,W,H*0.068);
+  }); c.restore();
+  // stars
+  c.fillStyle='#fff'; c.globalAlpha=0.75;
+  [[0.05,0.04],[0.14,0.08],[0.24,0.03],[0.38,0.09],[0.52,0.04],[0.65,0.08],[0.78,0.02],[0.91,0.06],[0.11,0.14],[0.60,0.13],[0.72,0.16],[0.44,0.11]].forEach(([x,y])=>{
+    c.beginPath(); c.arc(W*x,H*y,s*1.1,0,Math.PI*2); c.fill();
+  }); c.globalAlpha=1;
+  // crescent moon
+  c.fillStyle='#FFF9C4'; c.beginPath(); c.arc(W*0.85,H*0.1,H*0.042,0,Math.PI*2); c.fill();
+  c.fillStyle='#1A3A5C'; c.beginPath(); c.arc(W*0.872,H*0.096,H*0.040,0,Math.PI*2); c.fill();
+  // snow ground
+  const gnd=c.createLinearGradient(0,H*0.55,0,H);
+  gnd.addColorStop(0,'#E3F2FD'); gnd.addColorStop(1,'#90CAF9');
+  c.fillStyle=gnd; c.fillRect(0,H*0.55,W,H*0.45);
+  // snow horizon wave
+  c.fillStyle='#EEF6FF'; c.beginPath(); c.moveTo(0,H*0.58);
+  for(let x=0;x<=W;x+=10) c.lineTo(x,H*0.575+Math.sin(x*0.014)*H*0.016);
+  c.lineTo(W,H); c.lineTo(0,H); c.closePath(); c.fill();
+  // icebergs
+  [[W*0.08,H*0.57,W*0.06,H*0.18,'#B3E5FC'],[W*0.78,H*0.57,W*0.07,H*0.22,'#90CAF9'],[W*0.57,H*0.57,W*0.048,H*0.13,'#B3E5FC']].forEach(([bx,by,bw,bh,col])=>{
+    c.fillStyle=col;
+    c.beginPath(); c.moveTo(bx-bw,by); c.lineTo(bx-bw*0.2,by-bh*0.5); c.lineTo(bx,by-bh); c.lineTo(bx+bw*0.5,by-bh*0.4); c.lineTo(bx+bw,by); c.closePath(); c.fill();
+    c.fillStyle='rgba(144,202,249,0.5)'; c.beginPath(); c.ellipse(bx,by,bw,H*0.022,0,0,Math.PI*2); c.fill();
+    pLabel(c,bx-bw*0.9,by+H*0.04,'冰山 Iceberg','由淡水冰凍結而成',s,'#0D47A1');
+  });
+  // ice cracks
+  c.strokeStyle='rgba(100,181,246,0.4)'; c.lineWidth=s*1.5;
+  [[0.22,0.72,0.36,0.77],[0.36,0.77,0.44,0.84],[0.60,0.73,0.72,0.69]].forEach(([x1,y1,x2,y2])=>{
+    c.beginPath(); c.moveTo(W*x1,H*y1); c.lineTo(W*x2,H*y2); c.stroke();
+  });
+  // animals
+  pPenguin(c,W*0.28,H*0.65,s);
+  pPolarBear(c,W*0.67,H*0.69,s);
+  pSeal(c,W*0.46,H*0.74,s);
+  pArcticFox(c,W*0.12,H*0.71,s);
+  pArcticTern(c,W*0.62,H*0.30,s);
+  // title
+  c.fillStyle='rgba(0,20,60,0.45)'; c.fillRect(0,H*0.906,W,H*0.094);
+  c.fillStyle='#fff'; c.font=`bold ${s*14}px sans-serif`; c.textAlign='center';
+  c.fillText('❄️ 極地生態海報 ─ 探索5種極地生物，找找彩蛋！',W/2,H*0.965);
+  c.textAlign='left';
+}
+function pPenguin(c,cx,cy,s){
+  c.fillStyle='#212121'; c.beginPath(); c.ellipse(cx,cy,s*10,s*15,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#FAFAFA'; c.beginPath(); c.ellipse(cx,cy+s*2,s*6,s*10,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#212121'; c.beginPath(); c.arc(cx,cy-s*14,s*7,0,Math.PI*2); c.fill();
+  c.fillStyle='#FAFAFA'; c.beginPath(); c.ellipse(cx,cy-s*14,s*3.5,s*4,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#1a2b4a'; [-2,2].forEach(dx=>{ c.beginPath(); c.arc(cx+dx*s,cy-s*15.5,s*1.2,0,Math.PI*2); c.fill(); });
+  c.fillStyle='#FF8F00'; c.beginPath(); c.moveTo(cx-s*2,cy-s*12.5); c.lineTo(cx,cy-s*11); c.lineTo(cx+s*2,cy-s*12.5); c.fill();
+  c.beginPath(); c.ellipse(cx-s*5,cy+s*15,s*4,s*2,0.3,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx+s*5,cy+s*15,s*4,s*2,-0.3,0,Math.PI*2); c.fill();
+  c.fillStyle='#212121'; c.beginPath(); c.ellipse(cx-s*11,cy-s*2,s*3,s*8,0.5,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx+s*11,cy-s*2,s*3,s*8,-0.5,0,Math.PI*2); c.fill();
+  pLabel(c,cx-s*18,cy+s*28,'企鵝 Penguin','黑白羽毛、游泳健將',s,'#1a2b4a');
+}
+function pPolarBear(c,cx,cy,s){
+  c.fillStyle='#FFFDE7';
+  c.beginPath(); c.ellipse(cx,cy,s*18,s*13,0,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(cx-s*14,cy-s*7,s*9,0,Math.PI*2); c.fill();
+  [[cx-s*20,cy-s*14],[cx-s*8,cy-s*15]].forEach(([ex,ey])=>{ c.beginPath(); c.arc(ex,ey,s*3.5,0,Math.PI*2); c.fill(); });
+  c.fillStyle='#FFF9C4'; [-7,-1,5,12].forEach(dx=>{ c.beginPath(); c.ellipse(cx+dx*s,cy+s*13,s*3.5,s*5,0,0,Math.PI*2); c.fill(); });
+  c.fillStyle='#424242'; c.beginPath(); c.ellipse(cx-s*22,cy-s*7,s*2.5,s*2,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx-s*17,cy-s*10,s*1.5,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff'; c.beginPath(); c.arc(cx-s*16.5,cy-s*10.5,s*0.5,0,Math.PI*2); c.fill();
+  pLabel(c,cx-s*22,cy+s*24,'北極熊 Polar Bear','白色皮毛、游泳健將',s,'#5D4037');
+}
+function pSeal(c,cx,cy,s){
+  c.fillStyle='#9E9E9E'; c.beginPath(); c.ellipse(cx,cy,s*20,s*9,-0.15,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(cx-s*18,cy-s*3,s*8,0,Math.PI*2); c.fill();
+  c.fillStyle='#BDBDBD'; c.beginPath(); c.ellipse(cx-s*2,cy+s*1,s*13,s*5,-0.15,0,Math.PI*2); c.fill();
+  c.fillStyle='#424242'; c.beginPath(); c.ellipse(cx-s*24,cy-s*4,s*2,s*1.5,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx-s*20,cy-s*6,s*2,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff'; c.beginPath(); c.arc(cx-s*19.5,cy-s*6.5,s*0.7,0,Math.PI*2); c.fill();
+  c.strokeStyle='rgba(200,200,200,0.8)'; c.lineWidth=s*0.8;
+  [-3,0,3].forEach(dy=>{ c.beginPath(); c.moveTo(cx-s*24,cy+dy*s); c.lineTo(cx-s*32,cy+(dy-1.5)*s); c.stroke(); c.beginPath(); c.moveTo(cx-s*24,cy+dy*s); c.lineTo(cx-s*32,cy+(dy+1.5)*s); c.stroke(); });
+  c.fillStyle='#9E9E9E'; c.beginPath(); c.moveTo(cx+s*20,cy); c.lineTo(cx+s*29,cy-s*6); c.lineTo(cx+s*27,cy+s*5); c.fill();
+  pLabel(c,cx-s*22,cy+s*16,'海豹 Seal','流線體型、潛水高手',s,'#546e7a');
+}
+function pArcticFox(c,cx,cy,s){
+  c.fillStyle='#F5F5F5';
+  c.beginPath(); c.ellipse(cx,cy,s*14,s*7,-0.1,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(cx-s*12,cy-s*3,s*7,0,Math.PI*2); c.fill();
+  [[-17,-9],[-9,-10]].forEach(([dx,dy])=>{
+    c.beginPath(); c.moveTo(cx+dx*s,cy+dy*s); c.lineTo(cx+(dx-3)*s,cy+(dy-8)*s); c.lineTo(cx+(dx+3)*s,cy+(dy-8)*s); c.fill();
+  });
+  c.fillStyle='#424242'; c.beginPath(); c.ellipse(cx-s*18,cy-s*4,s*1.8,s*1.4,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx-s*15,cy-s*6,s*1.5,0,Math.PI*2); c.fill();
+  c.fillStyle='#F5F5F5'; [-4,-1,3,7].forEach(dx=>{ c.beginPath(); c.ellipse(cx+dx*s,cy+s*7,s*2.5,s*4.5,0,0,Math.PI*2); c.fill(); });
+  c.beginPath(); c.ellipse(cx+s*16,cy-s*1,s*10,s*5,0.35,0,Math.PI*2); c.fill();
+  c.fillStyle='#FFF9C4'; c.beginPath(); c.arc(cx+s*24,cy-s*3,s*4,0,Math.PI*2); c.fill();
+  pLabel(c,cx-s*20,cy+s*18,'北極狐 Arctic Fox','白毛保暖、黃色尾尖',s,'#546e7a');
+}
+function pArcticTern(c,cx,cy,s){
+  c.fillStyle='rgba(220,220,220,0.92)';
+  c.beginPath(); c.ellipse(cx-s*16,cy,s*16,s*4,-0.2,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx+s*16,cy,s*16,s*4,0.2,0,Math.PI*2); c.fill();
+  c.fillStyle='#EEEEEE'; c.beginPath(); c.ellipse(cx,cy,s*7,s*4,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#212121'; c.beginPath(); c.arc(cx,cy-s*3,s*5,0,Math.PI*2); c.fill();
+  c.fillStyle='#F44336'; c.beginPath(); c.moveTo(cx+s*5,cy-s*3); c.lineTo(cx+s*13,cy-s*2); c.lineTo(cx+s*5,cy-s*1); c.fill();
+  c.fillStyle='#EEEEEE';
+  c.beginPath(); c.moveTo(cx-s*7,cy+s*3); c.lineTo(cx-s*17,cy+s*12); c.lineTo(cx-s*11,cy+s*4); c.fill();
+  c.beginPath(); c.moveTo(cx-s*7,cy+s*3); c.lineTo(cx-s*13,cy+s*15); c.lineTo(cx-s*9,cy+s*4); c.fill();
+  pLabel(c,cx-s*20,cy+s*22,'北極燕鷗 Arctic Tern','叉形尾、遷徙最遠的鳥',s,'#1565c0');
+}
+
+// ─── DESERT SCENE ──────────────────────────────────────────
+function drawDesert(c,W,H){
+  const s=W/800;
+  const sky=c.createLinearGradient(0,0,0,H*0.55);
+  sky.addColorStop(0,'#FF6F00'); sky.addColorStop(0.45,'#FFD54F'); sky.addColorStop(1,'#FFF9C4');
+  c.fillStyle=sky; c.fillRect(0,0,W,H*0.55);
+  // blazing sun
+  c.fillStyle='rgba(255,220,0,0.28)'; c.beginPath(); c.arc(W*0.84,H*0.1,H*0.12,0,Math.PI*2); c.fill();
+  c.fillStyle='#FFD600'; c.beginPath(); c.arc(W*0.84,H*0.1,H*0.072,0,Math.PI*2); c.fill();
+  c.strokeStyle='#FFE57F'; c.lineWidth=s*2;
+  for(let i=0;i<10;i++){const a=i*Math.PI*0.2; c.beginPath(); c.moveTo(W*0.84+Math.cos(a)*H*0.10,H*0.1+Math.sin(a)*H*0.10); c.lineTo(W*0.84+Math.cos(a)*H*0.13,H*0.1+Math.sin(a)*H*0.13); c.stroke();}
+  // sand ground
+  const gnd=c.createLinearGradient(0,H*0.5,0,H);
+  gnd.addColorStop(0,'#F9A825'); gnd.addColorStop(0.5,'#E65100'); gnd.addColorStop(1,'#BF360C');
+  c.fillStyle=gnd; c.fillRect(0,H*0.5,W,H*0.5);
+  // dune waves
+  c.fillStyle='#FFB300'; c.beginPath(); c.moveTo(0,H*0.57);
+  for(let x=0;x<=W;x+=8) c.lineTo(x,H*0.565+Math.sin(x*0.009)*H*0.038+Math.sin(x*0.022)*H*0.016);
+  c.lineTo(W,H); c.lineTo(0,H); c.closePath(); c.fill();
+  c.fillStyle='#FFC107'; c.beginPath(); c.moveTo(0,H*0.63);
+  for(let x=0;x<=W;x+=8) c.lineTo(x,H*0.624+Math.sin(x*0.011+1)*H*0.022);
+  c.lineTo(W,H); c.lineTo(0,H); c.closePath(); c.fill();
+  // heat shimmer
+  c.strokeStyle='rgba(255,200,80,0.18)'; c.lineWidth=s;
+  for(let i=0;i<5;i++){c.beginPath(); c.moveTo(W*(0.12+i*0.17),H*0.52); c.quadraticCurveTo(W*(0.16+i*0.17),H*0.50,W*(0.20+i*0.17),H*0.52); c.stroke();}
+  pCactus(c,W*0.22,H*0.65,s);
+  pCactus(c,W*0.74,H*0.68,s*0.78);
+  pCamel(c,W*0.52,H*0.70,s);
+  pScorpion(c,W*0.32,H*0.73,s);
+  pDesertLizard(c,W*0.66,H*0.72,s);
+  pJerboa(c,W*0.11,H*0.73,s);
+  pDesertRose(c,W*0.86,H*0.74,s);
+  c.fillStyle='rgba(80,20,0,0.45)'; c.fillRect(0,H*0.906,W,H*0.094);
+  c.fillStyle='#fff'; c.font=`bold ${s*14}px sans-serif`; c.textAlign='center';
+  c.fillText('🌵 沙漠生態海報 ─ 探索5種沙漠生物，找找彩蛋！',W/2,H*0.965);
+  c.textAlign='left';
+}
+function pCactus(c,cx,cy,s){
+  c.fillStyle='#388E3C';
+  c.beginPath(); c.rect(cx-s*6,cy-s*30,s*12,s*30); c.fill();
+  c.beginPath(); c.arc(cx,cy-s*30,s*6,Math.PI,0); c.fill();
+  // left arm
+  c.beginPath(); c.rect(cx-s*18,cy-s*22,s*12,s*5); c.fill();
+  c.beginPath(); c.rect(cx-s*18,cy-s*28,s*5,s*8); c.fill();
+  c.beginPath(); c.arc(cx-s*15.5,cy-s*28,s*2.5,Math.PI,0); c.fill();
+  // right arm
+  c.beginPath(); c.rect(cx+s*6,cy-s*16,s*12,s*5); c.fill();
+  c.beginPath(); c.rect(cx+s*14,cy-s*22,s*5,s*8); c.fill();
+  c.beginPath(); c.arc(cx+s*16.5,cy-s*22,s*2.5,Math.PI,0); c.fill();
+  // spines
+  c.strokeStyle='#FFF9C4'; c.lineWidth=s*0.7;
+  [[-4,-26],[4,-24],[-4,-18],[4,-14],[-4,-8],[3,-4]].forEach(([dx,dy])=>{
+    c.beginPath(); c.moveTo(cx+dx*s,cy+dy*s); c.lineTo(cx+(dx-5)*s,cy+dy*s); c.stroke();
+    c.beginPath(); c.moveTo(cx+dx*s,cy+dy*s); c.lineTo(cx+(dx+5)*s,cy+dy*s); c.stroke();
+  });
+  pLabel(c,cx-s*18,cy+s*8,'仙人掌 Cactus','儲水莖、刺代替葉',s,'#2E7D32');
+}
+function pCamel(c,cx,cy,s){
+  c.fillStyle='#C8A97A';
+  c.beginPath(); c.ellipse(cx,cy,s*22,s*14,0,0,Math.PI*2); c.fill();
+  // humps
+  c.beginPath(); c.arc(cx-s*8,cy-s*14,s*9,Math.PI,0); c.fill();
+  c.beginPath(); c.arc(cx+s*8,cy-s*14,s*8,Math.PI,0); c.fill();
+  c.fillStyle='#A0785A';
+  c.beginPath(); c.arc(cx-s*8,cy-s*18,s*5,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(cx+s*8,cy-s*16,s*4.5,0,Math.PI*2); c.fill();
+  // neck+head
+  c.fillStyle='#C8A97A'; c.beginPath(); c.ellipse(cx-s*18,cy-s*8,s*6,s*14,-0.35,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx-s*24,cy-s*20,s*9,s*7,0.3,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx-s*32,cy-s*18,s*5,s*4,0.2,0,Math.PI*2); c.fill();
+  c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx-s*26,cy-s*22,s*1.8,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff'; c.beginPath(); c.arc(cx-s*25.5,cy-s*22.5,s*0.6,0,Math.PI*2); c.fill();
+  c.fillStyle='#A0785A'; c.beginPath(); c.ellipse(cx-s*35,cy-s*18,s*1.5,s*1,0,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx-s*35,cy-s*20,s*1.5,s*1,0,0,Math.PI*2); c.fill();
+  // legs
+  c.fillStyle='#C8A97A'; [-12,-4,4,12].forEach(dx=>{ c.beginPath(); c.rect(cx+dx*s,cy+s*14,s*5,s*16); c.fill(); });
+  c.fillStyle='#5D4037'; [-12,-4,4,12].forEach(dx=>{ c.beginPath(); c.ellipse(cx+(dx+2.5)*s,cy+s*30,s*3,s*2.5,0,0,Math.PI*2); c.fill(); });
+  c.strokeStyle='#A0785A'; c.lineWidth=s*3; c.lineCap='round';
+  c.beginPath(); c.moveTo(cx+s*22,cy); c.quadraticCurveTo(cx+s*30,cy-s*4,cx+s*28,cy+s*8); c.stroke();
+  pLabel(c,cx-s*28,cy+s*30,'駱駝 Camel','雙峰儲脂、耐旱耐熱',s,'#5D4037');
+}
+function pScorpion(c,cx,cy,s){
+  c.fillStyle='#424242';
+  c.beginPath(); c.ellipse(cx,cy,s*7,s*5,0,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx-s*8,cy,s*5,s*4,0,0,Math.PI*2); c.fill();
+  // claws
+  [[-14,-2,-1],[-14,2,1]].forEach(([dx,dy,dir])=>{
+    c.beginPath(); c.ellipse(cx+dx*s,cy+dy*s,s*4,s*2.5,dir*0.3,0,Math.PI*2); c.fill();
+    c.beginPath(); c.arc(cx+(dx-5)*s,cy+(dy-dir)*s,s*2,0,Math.PI*2); c.fill();
+  });
+  // tail
+  [[cx+s*7,cy],[cx+s*13,cy-s*3],[cx+s*18,cy-s*8],[cx+s*21,cy-s*14],[cx+s*20,cy-s*21]].forEach(([tx,ty],i)=>{
+    c.beginPath(); c.arc(tx,ty,s*(3.5-i*0.38),0,Math.PI*2); c.fill();
+  });
+  c.beginPath(); c.moveTo(cx+s*20,cy-s*21); c.lineTo(cx+s*16,cy-s*27); c.lineTo(cx+s*22,cy-s*24); c.fill();
+  // legs
+  c.strokeStyle='#424242'; c.lineWidth=s*1.5;
+  [0,1,2,3].forEach(i=>{
+    c.beginPath(); c.moveTo(cx-s*4+i*s*2,cy-s*4); c.lineTo(cx-s*12+i*s*3,cy-s*12); c.stroke();
+    c.beginPath(); c.moveTo(cx-s*4+i*s*2,cy+s*4); c.lineTo(cx-s*12+i*s*3,cy+s*12); c.stroke();
+  });
+  c.fillStyle='#FF6F00'; [-2,2].forEach(dx=>{ c.beginPath(); c.arc(cx-s*10+dx*s,cy-s*1.5,s*1,0,Math.PI*2); c.fill(); });
+  pLabel(c,cx-s*16,cy+s*20,'蠍子 Scorpion','毒刺、8條腿、夜行',s,'#1a2b4a');
+}
+function pDesertLizard(c,cx,cy,s){
+  c.fillStyle='#8BC34A';
+  c.beginPath(); c.ellipse(cx,cy,s*14,s*7,0,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx-s*13,cy,s*7,s*5,-0.1,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx-s*19,cy+s*1,s*4,s*3,0,0,Math.PI*2); c.fill();
+  c.strokeStyle='#8BC34A'; c.lineWidth=s*6; c.lineCap='round';
+  c.beginPath(); c.moveTo(cx+s*14,cy); c.quadraticCurveTo(cx+s*24,cy-s*4,cx+s*34,cy+s*8); c.stroke();
+  c.lineWidth=s*2.5; c.beginPath(); c.moveTo(cx+s*27,cy+s*3); c.lineTo(cx+s*40,cy+s*7); c.stroke();
+  c.strokeStyle='#6D9929'; c.lineWidth=s*3;
+  [[-8,-4],[-2,-4],[4,4],[10,4]].forEach(([dx,dy])=>{
+    const side=dy<0?-1:1;
+    c.beginPath(); c.moveTo(cx+dx*s,cy); c.lineTo(cx+(dx-7)*s,cy+side*s*9); c.lineTo(cx+(dx-3)*s,cy+side*s*14); c.stroke();
+    c.beginPath(); c.moveTo(cx+dx*s,cy); c.lineTo(cx+(dx+5)*s,cy+side*s*9); c.lineTo(cx+(dx+9)*s,cy+side*s*14); c.stroke();
+  });
+  c.fillStyle='rgba(0,0,0,0.2)';
+  [[-4,0],[1,2],[6,-1],[10,0]].forEach(([dx,dy])=>{ c.beginPath(); c.arc(cx+dx*s,cy+dy*s,s*1.5,0,Math.PI*2); c.fill(); });
+  c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx-s*14,cy-s*2,s*2,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff'; c.beginPath(); c.arc(cx-s*13,cy-s*2.5,s*0.7,0,Math.PI*2); c.fill();
+  c.strokeStyle='#F44336'; c.lineWidth=s*1.5;
+  c.beginPath(); c.moveTo(cx-s*23,cy+s*1); c.lineTo(cx-s*29,cy+s*1); c.stroke();
+  c.beginPath(); c.moveTo(cx-s*29,cy+s*1); c.lineTo(cx-s*33,cy-s*1); c.stroke();
+  c.beginPath(); c.moveTo(cx-s*29,cy+s*1); c.lineTo(cx-s*33,cy+s*3); c.stroke();
+  pLabel(c,cx-s*18,cy+s*22,'蜥蜴 Lizard','鱗片覆蓋、變溫動物',s,'#558B2F');
+}
+function pJerboa(c,cx,cy,s){
+  c.fillStyle='#D7CCA4';
+  c.beginPath(); c.ellipse(cx,cy,s*8,s*6,0,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(cx-s*7,cy-s*2,s*7,0,Math.PI*2); c.fill();
+  c.fillStyle='#C9B882';
+  [[-13,-10],[-5,-11]].forEach(([dx,dy])=>{ c.beginPath(); c.ellipse(cx+dx*s,cy+dy*s,s*2.5,s*7,0.15,0,Math.PI*2); c.fill(); });
+  c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx-s*10,cy-s*4,s*2.5,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff'; c.beginPath(); c.arc(cx-s*9,cy-s*4.5,s*0.8,0,Math.PI*2); c.fill();
+  c.fillStyle='#C9B882'; c.beginPath(); c.ellipse(cx-s*13,cy-s*2,s*1.8,s*1.4,0,0,Math.PI*2); c.fill();
+  c.strokeStyle='#C9B882'; c.lineWidth=s*2; c.lineCap='round';
+  c.beginPath(); c.moveTo(cx-s*4,cy+s*5); c.lineTo(cx-s*7,cy+s*12); c.stroke();
+  c.beginPath(); c.moveTo(cx,cy+s*5); c.lineTo(cx-s*3,cy+s*12); c.stroke();
+  c.lineWidth=s*3;
+  c.beginPath(); c.moveTo(cx-s*4,cy+s*6); c.lineTo(cx-s*8,cy+s*20); c.lineTo(cx-s*4,cy+s*14); c.stroke();
+  c.beginPath(); c.moveTo(cx+s*4,cy+s*6); c.lineTo(cx+s*8,cy+s*20); c.lineTo(cx+s*4,cy+s*14); c.stroke();
+  c.lineWidth=s*2;
+  c.beginPath(); c.moveTo(cx+s*8,cy); c.quadraticCurveTo(cx+s*22,cy-s*5,cx+s*28,cy+s*6); c.stroke();
+  c.fillStyle='#fff'; c.beginPath(); c.arc(cx+s*28,cy+s*5,s*3,0,Math.PI*2); c.fill();
+  pLabel(c,cx-s*16,cy+s*22,'跳鼠 Jerboa','大後腿、沙漠跳高手',s,'#8D6E63');
+}
+function pDesertRose(c,cx,cy,s){
+  for(let i=0;i<5;i++){const a=i*Math.PI*0.4; c.fillStyle=['#FF7043','#FF5722','#E64A19','#FF8A65','#D84315'][i]; c.globalAlpha=0.85; c.beginPath(); c.ellipse(cx+Math.cos(a)*s*8,cy+Math.sin(a)*s*6,s*8,s*5,a,0,Math.PI*2); c.fill();}
+  c.globalAlpha=1; c.fillStyle='#FFD54F'; c.beginPath(); c.arc(cx,cy,s*5,0,Math.PI*2); c.fill();
+  c.fillStyle='#FF8F00'; c.beginPath(); c.arc(cx,cy,s*3,0,Math.PI*2); c.fill();
+  c.fillStyle='#1a2b4a'; c.font=`bold ${s*7.5}px sans-serif`; c.fillText('沙漠玫瑰',cx-s*16,cy+s*22);
+  c.fillStyle='#546e7a'; c.font=`${s*6.5}px sans-serif`; c.fillText('Desert Rose,耐旱花卉',cx-s*22,cy+s*32);
+}
+
+// ─── RAINFOREST SCENE ──────────────────────────────────────
+function drawRainforest(c,W,H){
+  const s=W/800;
+  // canopy sky
+  const sky=c.createLinearGradient(0,0,0,H*0.6);
+  sky.addColorStop(0,'#1B5E20'); sky.addColorStop(0.5,'#2E7D32'); sky.addColorStop(1,'#388E3C');
+  c.fillStyle=sky; c.fillRect(0,0,W,H*0.6);
+  // mist
+  c.fillStyle='rgba(255,255,255,0.14)'; c.fillRect(0,0,W,H*0.2);
+  // ground
+  const gnd=c.createLinearGradient(0,H*0.55,0,H);
+  gnd.addColorStop(0,'#33691E'); gnd.addColorStop(1,'#1B5E20');
+  c.fillStyle=gnd; c.fillRect(0,H*0.55,W,H*0.45);
+  // dappled light on ground
+  c.fillStyle='rgba(255,255,180,0.07)';
+  [[0.15,0.7,0.04],[0.42,0.65,0.06],[0.68,0.72,0.05],[0.85,0.68,0.03]].forEach(([x,y,r])=>{
+    c.beginPath(); c.ellipse(W*x,H*y,W*r,H*r*0.5,0,0,Math.PI*2); c.fill();
+  });
+  // tree trunks
+  [[W*0.08,H*0.28,s*18],[W*0.34,H*0.48,s*14],[W*0.72,H*0.32,s*16],[W*0.93,H*0.38,s*20]].forEach(([tx,ty,tw])=>{
+    c.fillStyle='#4E342E'; c.beginPath(); c.rect(tx-tw/2,ty,tw,H-ty); c.fill();
+    c.fillStyle='#3E2723'; c.beginPath(); c.rect(tx-tw*0.5,ty+H*0.1,tw*0.28,H-ty-H*0.1); c.fill();
+  });
+  // canopy blobs
+  [[W*0.08,H*0.14,H*0.16,'#1B5E20'],[W*0.06,H*0.22,H*0.13,'#2E7D32'],
+   [W*0.34,H*0.18,H*0.18,'#1B5E20'],[W*0.72,H*0.10,H*0.2,'#2E7D32'],
+   [W*0.93,H*0.16,H*0.17,'#1B5E20'],[W*0.50,H*0.06,H*0.15,'#33691E'],
+   [W*0.22,H*0.10,H*0.12,'#2E7D32'],[W*0.58,H*0.18,H*0.14,'#388E3C']].forEach(([x,y,r,col])=>{
+    c.fillStyle=col; c.beginPath(); c.arc(x,y,r,0,Math.PI*2); c.fill();
+  });
+  // big tropical leaves
+  [[W*0.25,H*0.62],[W*0.58,H*0.60],[W*0.80,H*0.65]].forEach(([lx,ly],i)=>pBigLeaf(c,lx,ly,s*(i===2?0.8:1)));
+  // vines
+  c.strokeStyle='#558B2F'; c.lineWidth=s*3;
+  [[W*0.30,0,W*0.28,H*0.6],[W*0.55,0,W*0.58,H*0.6],[W*0.76,0,W*0.74,H*0.5]].forEach(([x1,y1,x2,y2])=>{
+    c.beginPath(); c.moveTo(x1,y1); c.quadraticCurveTo(x1+W*0.04,H*0.3,x2,y2); c.stroke();
+  });
+  // waterfall
+  c.fillStyle='rgba(100,181,246,0.65)'; c.beginPath(); c.rect(W*0.47,H*0.3,s*10,H*0.3); c.fill();
+  c.fillStyle='rgba(144,202,249,0.4)'; c.beginPath(); c.ellipse(W*0.475,H*0.61,s*14,H*0.035,0,0,Math.PI*2); c.fill();
+  // animals
+  pToucan(c,W*0.62,H*0.30,s);
+  pSpiderMonkey(c,W*0.20,H*0.38,s);
+  pTreeFrog(c,W*0.38,H*0.58,s);
+  pMacaw(c,W*0.80,H*0.35,s);
+  pOrchid(c,W*0.10,H*0.68,s);
+  c.fillStyle='rgba(10,40,10,0.45)'; c.fillRect(0,H*0.906,W,H*0.094);
+  c.fillStyle='#fff'; c.font=`bold ${s*14}px sans-serif`; c.textAlign='center';
+  c.fillText('🌴 熱帶雨林海報 ─ 探索5種雨林生物，找找彩蛋！',W/2,H*0.965);
+  c.textAlign='left';
+}
+function pBigLeaf(c,cx,cy,s){
+  c.fillStyle='#388E3C'; c.globalAlpha=0.8;
+  c.beginPath(); c.moveTo(cx,cy); c.quadraticCurveTo(cx+s*20,cy-s*20,cx+s*30,cy-s*5); c.quadraticCurveTo(cx+s*20,cy+s*10,cx,cy); c.fill();
+  c.strokeStyle='#2E7D32'; c.lineWidth=s*1.5; c.globalAlpha=1; c.beginPath(); c.moveTo(cx,cy); c.lineTo(cx+s*28,cy-s*4); c.stroke();
+}
+function pToucan(c,cx,cy,s){
+  c.fillStyle='#212121'; c.beginPath(); c.ellipse(cx,cy,s*10,s*8,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#FAFAFA'; c.beginPath(); c.ellipse(cx-s*2,cy-s*1,s*6,s*5,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#FF6F00'; c.beginPath(); c.ellipse(cx-s*2,cy+s*2,s*4,s*3,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#212121'; c.beginPath(); c.arc(cx-s*8,cy-s*6,s*7,0,Math.PI*2); c.fill();
+  // big colourful beak
+  c.fillStyle='#FF8F00'; c.beginPath(); c.moveTo(cx-s*14,cy-s*8); c.lineTo(cx-s*14,cy-s*4); c.lineTo(cx-s*34,cy-s*6); c.closePath(); c.fill();
+  c.fillStyle='#66BB6A'; c.beginPath(); c.moveTo(cx-s*30,cy-s*8); c.lineTo(cx-s*34,cy-s*6); c.lineTo(cx-s*30,cy-s*5); c.fill();
+  c.strokeStyle='#E65100'; c.lineWidth=s; c.beginPath(); c.moveTo(cx-s*14,cy-s*6); c.lineTo(cx-s*34,cy-s*6); c.stroke();
+  c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx-s*10,cy-s*8,s*2,0,Math.PI*2); c.fill();
+  c.fillStyle='rgba(0,200,0,0.5)'; c.strokeStyle='rgba(0,200,0,0.5)'; c.lineWidth=s;
+  c.beginPath(); c.ellipse(cx-s*10,cy-s*8,s*3,s*2,0,0,Math.PI*2); c.stroke();
+  // branch
+  c.strokeStyle='#5D4037'; c.lineWidth=s*12; c.lineCap='round';
+  c.beginPath(); c.moveTo(cx-s*14,cy+s*9); c.lineTo(cx+s*14,cy+s*9); c.stroke();
+  // tail
+  c.fillStyle='#212121'; c.beginPath(); c.moveTo(cx+s*10,cy); c.lineTo(cx+s*22,cy-s*4); c.lineTo(cx+s*20,cy+s*6); c.fill();
+  pLabel(c,cx-s*22,cy+s*28,'巨嘴鳥 Toucan','大彩色喙、熱帶鳥類',s,'#E65100');
+}
+function pSpiderMonkey(c,cx,cy,s){
+  c.fillStyle='#5D4037';
+  c.beginPath(); c.ellipse(cx,cy,s*10,s*13,0,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(cx,cy-s*14,s*8,0,Math.PI*2); c.fill();
+  c.fillStyle='#795548'; c.beginPath(); c.ellipse(cx,cy-s*14,s*4,s*4.5,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#1a2b4a'; [-3,3].forEach(dx=>{ c.beginPath(); c.arc(cx+dx*s,cy-s*15,s*1.8,0,Math.PI*2); c.fill(); });
+  c.fillStyle='#3E2723'; c.beginPath(); c.ellipse(cx,cy-s*12,s*2.5,s*2,0,0,Math.PI*2); c.fill();
+  // arms & prehensile tail
+  c.strokeStyle='#5D4037'; c.lineWidth=s*5; c.lineCap='round';
+  c.beginPath(); c.moveTo(cx-s*10,cy-s*5); c.quadraticCurveTo(cx-s*26,cy,cx-s*30,cy-s*10); c.stroke();
+  c.beginPath(); c.moveTo(cx+s*10,cy-s*5); c.quadraticCurveTo(cx+s*24,cy,cx+s*28,cy-s*8); c.stroke();
+  // tail wraps around branch
+  c.lineWidth=s*4;
+  c.beginPath(); c.moveTo(cx+s*10,cy+s*12); c.quadraticCurveTo(cx+s*28,cy+s*16,cx+s*30,cy+s*4); c.quadraticCurveTo(cx+s*30,cy-s*4,cx+s*22,cy-s*6); c.stroke();
+  // legs
+  c.lineWidth=s*4.5;
+  c.beginPath(); c.moveTo(cx-s*8,cy+s*13); c.lineTo(cx-s*12,cy+s*28); c.stroke();
+  c.beginPath(); c.moveTo(cx+s*8,cy+s*13); c.lineTo(cx+s*12,cy+s*28); c.stroke();
+  pLabel(c,cx-s*22,cy+s*36,'蜘蛛猴 Spider Monkey','長尾抓枝、群居',s,'#4E342E');
+}
+function pTreeFrog(c,cx,cy,s){
+  c.fillStyle='#4CAF50'; c.beginPath(); c.ellipse(cx,cy,s*12,s*9,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#81C784'; c.beginPath(); c.ellipse(cx,cy+s*2,s*7,s*5,0,0,Math.PI*2); c.fill();
+  [[cx-s*8,cy-s*8],[cx+s*8,cy-s*8]].forEach(([ex,ey])=>{
+    c.fillStyle='#C8E6C9'; c.beginPath(); c.arc(ex,ey,s*5.5,0,Math.PI*2); c.fill();
+    c.fillStyle='#FF3D00'; c.beginPath(); c.arc(ex,ey,s*4,0,Math.PI*2); c.fill();
+    c.fillStyle='#1a2b4a'; c.beginPath(); c.ellipse(ex,ey,s*1.5,s*3.5,0,0,Math.PI*2); c.fill();
+    c.fillStyle='rgba(255,255,255,0.7)'; c.beginPath(); c.arc(ex-s,ey-s,s*0.8,0,Math.PI*2); c.fill();
+  });
+  // sticky toe pads
+  c.fillStyle='#4CAF50'; c.strokeStyle='#2E7D32'; c.lineWidth=s*2; c.lineCap='round';
+  [[-16,8],[-20,2],[16,8],[20,2]].forEach(([dx,dy])=>{
+    c.beginPath(); c.moveTo(cx,cy); c.lineTo(cx+dx*s,cy+dy*s); c.stroke();
+    c.fillStyle='#A5D6A7'; c.beginPath(); c.arc(cx+dx*s,cy+dy*s,s*2.8,0,Math.PI*2); c.fill();
+  });
+  c.strokeStyle='#2E7D32'; c.lineWidth=s*2;
+  c.beginPath(); c.moveTo(cx-s*14,cy+s*9); c.lineTo(cx-s*20,cy+s*20); c.stroke();
+  c.beginPath(); c.moveTo(cx+s*14,cy+s*9); c.lineTo(cx+s*20,cy+s*20); c.stroke();
+  pLabel(c,cx-s*16,cy+s*26,'樹蛙 Tree Frog','紅眼、吸盤趾、變色',s,'#1B5E20');
+}
+function pMacaw(c,cx,cy,s){
+  // body
+  c.fillStyle='#F44336'; c.beginPath(); c.ellipse(cx,cy,s*10,s*8,0,0,Math.PI*2); c.fill();
+  // wings
+  c.fillStyle='#1565c0'; c.beginPath(); c.ellipse(cx-s*10,cy,s*8,s*12,-0.4,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx+s*10,cy,s*8,s*12,0.4,0,Math.PI*2); c.fill();
+  c.fillStyle='#FFD600'; c.beginPath(); c.ellipse(cx-s*8,cy+s*2,s*4,s*6,-0.4,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx+s*8,cy+s*2,s*4,s*6,0.4,0,Math.PI*2); c.fill();
+  // head
+  c.fillStyle='#F44336'; c.beginPath(); c.arc(cx,cy-s*9,s*7,0,Math.PI*2); c.fill();
+  // white face patch
+  c.fillStyle='#FFF9C4'; c.beginPath(); c.ellipse(cx+s*2,cy-s*9,s*3.5,s*3,0,0,Math.PI*2); c.fill();
+  // hooked beak
+  c.fillStyle='#424242'; c.beginPath(); c.moveTo(cx+s*5,cy-s*9); c.lineTo(cx+s*13,cy-s*8); c.lineTo(cx+s*10,cy-s*5); c.lineTo(cx+s*5,cy-s*7); c.fill();
+  c.fillStyle='#757575'; c.beginPath(); c.moveTo(cx+s*6,cy-s*8); c.lineTo(cx+s*13,cy-s*7); c.lineTo(cx+s*10,cy-s*6); c.fill();
+  // eye
+  c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx+s*2,cy-s*11,s*1.8,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff'; c.beginPath(); c.arc(cx+s*2.5,cy-s*11.5,s*0.6,0,Math.PI*2); c.fill();
+  // long tail
+  c.fillStyle='#1565c0'; c.beginPath(); c.moveTo(cx-s*5,cy+s*8); c.lineTo(cx-s*10,cy+s*28); c.lineTo(cx,cy+s*8); c.fill();
+  c.fillStyle='#F44336'; c.beginPath(); c.moveTo(cx,cy+s*8); c.lineTo(cx+s*2,cy+s*26); c.lineTo(cx+s*8,cy+s*8); c.fill();
+  // branch
+  c.strokeStyle='#5D4037'; c.lineWidth=s*10; c.lineCap='round';
+  c.beginPath(); c.moveTo(cx-s*16,cy+s*9); c.lineTo(cx+s*16,cy+s*9); c.stroke();
+  pLabel(c,cx-s*22,cy+s*38,'金剛鸚鵡 Macaw','鮮豔羽毛、仿聲能力',s,'#B71C1C');
+}
+function pOrchid(c,cx,cy,s){
+  // stem
+  c.strokeStyle='#2E7D32'; c.lineWidth=s*3; c.lineCap='round';
+  c.beginPath(); c.moveTo(cx,cy); c.quadraticCurveTo(cx+s*5,cy-s*20,cx+s*10,cy-s*40); c.stroke();
+  c.beginPath(); c.moveTo(cx+s*10,cy-s*40); c.quadraticCurveTo(cx+s*20,cy-s*50,cx+s*15,cy-s*55); c.stroke();
+  // leaves
+  c.fillStyle='#388E3C'; c.globalAlpha=0.85;
+  c.beginPath(); c.moveTo(cx,cy-s*10); c.quadraticCurveTo(cx-s*18,cy-s*15,cx-s*20,cy-s*8); c.quadraticCurveTo(cx-s*8,cy-s*5,cx,cy-s*10); c.fill();
+  c.globalAlpha=1;
+  // flowers
+  [[cx+s*10,cy-s*40],[cx+s*15,cy-s*55]].forEach(([fx,fy])=>{
+    for(let i=0;i<5;i++){const a=i*Math.PI*0.4; c.fillStyle='#CE93D8'; c.globalAlpha=0.88; c.beginPath(); c.ellipse(fx+Math.cos(a)*s*7,fy+Math.sin(a)*s*5,s*7,s*4,a,0,Math.PI*2); c.fill();}
+    c.globalAlpha=1; c.fillStyle='#FFD54F'; c.beginPath(); c.arc(fx,fy,s*4,0,Math.PI*2); c.fill();
+    c.fillStyle='#7B1FA2'; c.beginPath(); c.arc(fx,fy,s*2.5,0,Math.PI*2); c.fill();
+  });
+  c.fillStyle='#1a2b4a'; c.font=`bold ${s*7.5}px sans-serif`; c.fillText('蘭花 Orchid',cx-s*16,cy+s*12);
+  c.fillStyle='#546e7a'; c.font=`${s*6.5}px sans-serif`; c.fillText('熱帶花卉、香氣濃',cx-s*18,cy+s*22);
+}
+
+// ─── MOUNTAIN SCENE ────────────────────────────────────────
+function drawMountain(c,W,H){
+  const s=W/800;
+  // dawn/misty sky
+  const sky=c.createLinearGradient(0,0,0,H*0.6);
+  sky.addColorStop(0,'#37474F'); sky.addColorStop(0.4,'#78909C'); sky.addColorStop(0.8,'#B0BEC5'); sky.addColorStop(1,'#CFD8DC');
+  c.fillStyle=sky; c.fillRect(0,0,W,H*0.6);
+  // mountains (background)
+  [[0.0,1.0,0.25,0.22,0.50,1.0,'#546E7A'],[0.3,1.0,0.60,0.14,0.90,1.0,'#455A64'],
+   [0.5,1.0,0.75,0.08,1.0,1.0,'#37474F']].forEach(([x1,y1,xp,yp,x2,y2,col])=>{
+    c.fillStyle=col; c.beginPath(); c.moveTo(W*x1,H*y1); c.lineTo(W*xp,H*yp); c.lineTo(W*x2,H*y2); c.fill();
+  });
+  // snow caps
+  c.fillStyle='rgba(255,255,255,0.85)';
+  [[0.25,0.22,0.19,0.30,0.31,0.30],[0.60,0.14,0.53,0.24,0.67,0.24],[0.75,0.08,0.68,0.19,0.82,0.19]].forEach(([px,py,l1x,l1y,l2x,l2y])=>{
+    c.beginPath(); c.moveTo(W*px,H*py); c.lineTo(W*l1x,H*l1y); c.lineTo(W*l2x,H*l2y); c.fill();
+  });
+  // forest floor
+  const gnd=c.createLinearGradient(0,H*0.55,0,H);
+  gnd.addColorStop(0,'#558B2F'); gnd.addColorStop(0.5,'#33691E'); gnd.addColorStop(1,'#1B5E20');
+  c.fillStyle=gnd; c.fillRect(0,H*0.55,W,H*0.45);
+  // rolling hill edge
+  c.fillStyle='#689F38'; c.beginPath(); c.moveTo(0,H*0.60);
+  for(let x=0;x<=W;x+=10) c.lineTo(x,H*0.59+Math.sin(x*0.012)*H*0.02);
+  c.lineTo(W,H); c.lineTo(0,H); c.closePath(); c.fill();
+  // fog/mist layers
+  c.fillStyle='rgba(180,200,220,0.18)'; c.fillRect(0,H*0.45,W,H*0.15);
+  c.fillStyle='rgba(180,200,220,0.12)'; c.fillRect(0,H*0.30,W,H*0.1);
+  // pine trees (back row)
+  [[0.06,0.55,0.8],[0.16,0.53,1.0],[0.88,0.55,0.9],[0.96,0.52,1.1]].forEach(([tx,ty,ts])=>{
+    pMtnPine(c,W*tx,H*ty,s*ts);
+  });
+  // large maple trees (autumn)
+  [[W*0.28,H*0.62,s*1.1],[W*0.70,H*0.60,s*1.0]].forEach(([tx,ty,ts])=>pMaple(c,tx,ty,ts));
+  // pine trees (front)
+  [[0.04,0.72,1.2],[0.90,0.70,1.1]].forEach(([tx,ty,ts])=>pMtnPine(c,W*tx,H*ty,s*ts));
+  // stream
+  c.fillStyle='rgba(100,181,246,0.6)'; c.beginPath();
+  c.moveTo(W*0.48,H*0.62); c.quadraticCurveTo(W*0.50,H*0.75,W*0.46,H*0.90);
+  c.lineTo(W*0.52,H*0.90); c.quadraticCurveTo(W*0.54,H*0.75,W*0.52,H*0.62); c.closePath(); c.fill();
+  pLabel(c,W*0.42,H*0.95,'山溪 Mountain Stream','清澈冷水、富含氧氣',s,'#0D47A1');
+  // animals
+  pBlackBear(c,W*0.12,H*0.73,s);
+  pDeer(c,W*0.60,H*0.70,s);
+  pSquirrel(c,W*0.38,H*0.66,s);
+  pEagle(c,W*0.75,H*0.22,s);
+  pFlyingSquirrel(c,W*0.84,H*0.54,s);
+  c.fillStyle='rgba(30,50,30,0.45)'; c.fillRect(0,H*0.906,W,H*0.094);
+  c.fillStyle='#fff'; c.font=`bold ${s*14}px sans-serif`; c.textAlign='center';
+  c.fillText('🏔️ 高山森林海報 ─ 探索5種山林生物，找找彩蛋！',W/2,H*0.965);
+  c.textAlign='left';
+}
+function pMtnPine(c,cx,cy,s){
+  c.fillStyle='#5D4037'; c.beginPath(); c.rect(cx-s*4,cy,s*8,H-cy); c.fill();
+  [['#1B5E20',0.45],['#2E7D32',0.30],['#388E3C',0.18]].forEach(([col,ht],i)=>{
+    c.fillStyle=col; c.beginPath();
+    c.moveTo(cx,cy-H*ht); c.lineTo(cx-s*(16-i*3),cy-H*ht*0.35+H*0.04*i); c.lineTo(cx+s*(16-i*3),cy-H*ht*0.35+H*0.04*i); c.fill();
+  });
+}
+function pMaple(c,cx,cy,s){
+  c.fillStyle='#5D4037'; c.fillRect(cx-s*12,cy,s*24,H-cy);
+  [['#E64A19',cy-H*0.15,H*0.12],['#FF7043',cy-H*0.10,H*0.10],['#FF8A65',cy-H*0.18,H*0.09]].forEach(([col,ty,r])=>{
+    c.fillStyle=col; c.beginPath(); c.arc(cx,ty,r,0,Math.PI*2); c.fill();
+  });
+  c.fillStyle='#BF360C'; c.beginPath(); c.arc(cx-s*20,cy-H*0.10,H*0.07,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(cx+s*20,cy-H*0.08,H*0.065,0,Math.PI*2); c.fill();
+  pLabel(c,cx-s*16,cy-H*0.22,'楓樹 Maple','秋天紅葉、翅果種子',s,'#BF360C');
+}
+function pBlackBear(c,cx,cy,s){
+  c.fillStyle='#212121';
+  c.beginPath(); c.ellipse(cx,cy,s*16,s*13,0,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(cx-s*12,cy-s*10,s*9,0,Math.PI*2); c.fill();
+  [[cx-s*18,cy-s*17],[cx-s*6,cy-s*18]].forEach(([ex,ey])=>{ c.beginPath(); c.arc(ex,ey,s*4,0,Math.PI*2); c.fill(); });
+  c.fillStyle='#424242'; c.beginPath(); c.ellipse(cx-s*18,cy-s*8,s*5,s*4,0.2,0,Math.PI*2); c.fill();
+  c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx-s*14,cy-s*12,s*2,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff'; c.beginPath(); c.arc(cx-s*13.5,cy-s*12.5,s*0.6,0,Math.PI*2); c.fill();
+  c.fillStyle='#212121'; [-8,0,8].forEach(dx=>{ c.beginPath(); c.rect(cx+dx*s,cy+s*13,s*5,s*12); c.fill(); });
+  c.beginPath(); c.rect(cx-s*15,cy+s*5,s*5,s*12); c.fill();
+  c.fillStyle='#795548'; c.beginPath(); c.ellipse(cx-s*2,cy-s*5,s*5,s*4,0,0,Math.PI*2); c.fill();
+  pLabel(c,cx-s*24,cy+s*30,'台灣黑熊 Black Bear','V型胸紋、爬樹高手',s,'#1a2b4a');
+}
+function pDeer(c,cx,cy,s){
+  c.fillStyle='#A1887F';
+  c.beginPath(); c.ellipse(cx,cy,s*18,s*12,0,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx-s*14,cy-s*8,s*8,s*7,0.3,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(cx-s*20,cy-s*10,s*6,0,Math.PI*2); c.fill();
+  c.fillStyle='#EFEBE9'; c.beginPath(); c.ellipse(cx-s*5,cy,s*9,s*6,0,0,Math.PI*2); c.fill(); // belly
+  c.beginPath(); c.ellipse(cx-s*20,cy-s*10,s*3.5,s*3,0.2,0,Math.PI*2); c.fill(); // snout
+  c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx-s*23,cy-s*10,s*2,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff'; c.beginPath(); c.arc(cx-s*22.5,cy-s*10.5,s*0.7,0,Math.PI*2); c.fill();
+  c.fillStyle='#424242'; c.beginPath(); c.ellipse(cx-s*26,cy-s*10,s*1.8,s*1.4,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#EFEBE9'; c.beginPath(); c.ellipse(cx+s*17,cy,s*5,s*7,0.2,0,Math.PI*2); c.fill(); // rump
+  // antlers
+  c.strokeStyle='#6D4C41'; c.lineWidth=s*3; c.lineCap='round';
+  c.beginPath(); c.moveTo(cx-s*18,cy-s*15); c.lineTo(cx-s*22,cy-s*28); c.stroke();
+  c.beginPath(); c.moveTo(cx-s*22,cy-s*28); c.lineTo(cx-s*28,cy-s*36); c.stroke();
+  c.beginPath(); c.moveTo(cx-s*22,cy-s*24); c.lineTo(cx-s*15,cy-s*32); c.stroke();
+  c.beginPath(); c.moveTo(cx-s*14,cy-s*15); c.lineTo(cx-s*10,cy-s*28); c.stroke();
+  c.beginPath(); c.moveTo(cx-s*10,cy-s*28); c.lineTo(cx-s*4,cy-s*36); c.stroke();
+  c.beginPath(); c.moveTo(cx-s*10,cy-s*24); c.lineTo(cx-s*16,cy-s*32); c.stroke();
+  // legs
+  c.strokeStyle='#8D6E63'; c.lineWidth=s*4;
+  [-10,-4,6,12].forEach(dx=>{ c.beginPath(); c.moveTo(cx+dx*s,cy+s*12); c.lineTo(cx+dx*s,cy+s*28); c.stroke(); });
+  // hooves
+  c.fillStyle='#5D4037'; [-10,-4,6,12].forEach(dx=>{ c.beginPath(); c.ellipse(cx+dx*s,cy+s*29,s*3,s*2,0,0,Math.PI*2); c.fill(); });
+  // white spots
+  c.fillStyle='rgba(255,255,255,0.55)'; [[-2,-4],[4,0],[8,-6],[0,5]].forEach(([dx,dy])=>{ c.beginPath(); c.arc(cx+dx*s,cy+dy*s,s*2,0,Math.PI*2); c.fill(); });
+  pLabel(c,cx-s*22,cy+s*36,'山鹿 Deer','鹿角、白斑、善奔跑',s,'#5D4037');
+}
+function pSquirrel(c,cx,cy,s){
+  c.fillStyle='#8D6E63';
+  c.beginPath(); c.ellipse(cx,cy,s*8,s*7,0,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(cx-s*6,cy-s*5,s*6,0,Math.PI*2); c.fill();
+  [[cx-s*10,cy-s*10],[cx-s*2,cy-s*11]].forEach(([ex,ey])=>{
+    c.beginPath(); c.moveTo(ex,ey); c.lineTo(ex-s*2,ey-s*7); c.lineTo(ex+s*2,ey-s*7); c.fill();
+  });
+  c.fillStyle='#EFEBE9'; c.beginPath(); c.ellipse(cx-s*4,cy-s*4,s*2.5,s*3,0,0,Math.PI*2); c.fill();
+  c.fillStyle='1a2b4a'; c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx-s*8,cy-s*6,s*1.5,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff'; c.beginPath(); c.arc(cx-s*7.5,cy-s*6.5,s*0.5,0,Math.PI*2); c.fill();
+  c.fillStyle='#FF8F00'; c.beginPath(); c.ellipse(cx-s*10,cy-s*4,s*1.5,s*1,0,0,Math.PI*2); c.fill();
+  // bushy tail
+  c.fillStyle='#8D6E63'; c.beginPath(); c.ellipse(cx+s*14,cy-s*6,s*10,s*6,Math.PI*0.3,0,Math.PI*2); c.fill();
+  c.fillStyle='#BCAAA4'; c.beginPath(); c.ellipse(cx+s*14,cy-s*6,s*7,s*4,Math.PI*0.3,0,Math.PI*2); c.fill();
+  // legs holding nut
+  c.strokeStyle='#8D6E63'; c.lineWidth=s*3; c.lineCap='round';
+  c.beginPath(); c.moveTo(cx-s*6,cy+s*7); c.lineTo(cx-s*9,cy+s*16); c.stroke();
+  c.beginPath(); c.moveTo(cx+s*6,cy+s*7); c.lineTo(cx+s*9,cy+s*16); c.stroke();
+  c.beginPath(); c.moveTo(cx-s*4,cy+s*1); c.lineTo(cx-s*10,cy-s*2); c.stroke();
+  c.beginPath(); c.moveTo(cx+s*2,cy+s*2); c.lineTo(cx+s*8,cy-s*1); c.stroke();
+  // nut
+  c.fillStyle='#795548'; c.beginPath(); c.arc(cx-s*2,cy-s*2,s*4,0,Math.PI*2); c.fill();
+  c.fillStyle='#A1887F'; c.beginPath(); c.arc(cx-s*1,cy-s*3,s*1.5,0,Math.PI*2); c.fill();
+  pLabel(c,cx-s*18,cy+s*26,'松鼠 Squirrel','蓬鬆尾、儲存堅果',s,'#5D4037');
+}
+function pEagle(c,cx,cy,s){
+  // wings spread
+  c.fillStyle='#5D4037'; c.beginPath(); c.ellipse(cx-s*28,cy,s*26,s*7,-0.15,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx+s*28,cy,s*26,s*7,0.15,0,Math.PI*2); c.fill();
+  c.fillStyle='#795548'; c.beginPath(); c.ellipse(cx-s*24,cy+s*3,s*12,s*4,-0.15,0,Math.PI*2); c.fill();
+  c.beginPath(); c.ellipse(cx+s*24,cy+s*3,s*12,s*4,0.15,0,Math.PI*2); c.fill();
+  // body
+  c.fillStyle='#5D4037'; c.beginPath(); c.ellipse(cx,cy,s*10,s*7,0,0,Math.PI*2); c.fill();
+  // white head
+  c.fillStyle='#FAFAFA'; c.beginPath(); c.arc(cx,cy-s*7,s*7,0,Math.PI*2); c.fill();
+  // beak
+  c.fillStyle='#FFD600'; c.beginPath(); c.moveTo(cx+s*6,cy-s*7); c.lineTo(cx+s*14,cy-s*5); c.lineTo(cx+s*10,cy-s*3); c.fill();
+  // eye
+  c.fillStyle='#FF8F00'; c.beginPath(); c.arc(cx+s*4,cy-s*9,s*2.5,0,Math.PI*2); c.fill();
+  c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx+s*4.5,cy-s*9,s*1.5,0,Math.PI*2); c.fill();
+  // tail
+  c.fillStyle='#5D4037'; c.beginPath(); c.moveTo(cx-s*8,cy+s*7); c.lineTo(cx-s*14,cy+s*22); c.lineTo(cx+s*14,cy+s*22); c.lineTo(cx+s*8,cy+s*7); c.fill();
+  c.fillStyle='#FAFAFA'; c.beginPath(); c.moveTo(cx-s*4,cy+s*7); c.lineTo(cx-s*6,cy+s*20); c.lineTo(cx+s*6,cy+s*20); c.lineTo(cx+s*4,cy+s*7); c.fill();
+  pLabel(c,cx-s*22,cy+s*30,'老鷹 Eagle','白頭、鉤喙、翼展2m',s,'#4E342E');
+}
+function pFlyingSquirrel(c,cx,cy,s){
+  c.fillStyle='#8D6E63';
+  c.beginPath(); c.ellipse(cx,cy,s*9,s*7,0,0,Math.PI*2); c.fill();
+  c.beginPath(); c.arc(cx-s*7,cy-s*5,s*6,0,Math.PI*2); c.fill();
+  // gliding membrane (patagium)
+  c.fillStyle='rgba(141,110,99,0.75)';
+  c.beginPath(); c.moveTo(cx-s*16,cy-s*4); c.lineTo(cx-s*24,cy+s*12); c.lineTo(cx-s*6,cy+s*7); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(cx+s*16,cy-s*4); c.lineTo(cx+s*24,cy+s*12); c.lineTo(cx+s*6,cy+s*7); c.closePath(); c.fill();
+  // ears
+  [[cx-s*11,cy-s*9],[cx-s*3,cy-s*10]].forEach(([ex,ey])=>{
+    c.fillStyle='#8D6E63'; c.beginPath(); c.moveTo(ex,ey); c.lineTo(ex-s*2,ey-s*6); c.lineTo(ex+s*2,ey-s*6); c.fill();
+  });
+  c.fillStyle='#EFEBE9'; c.beginPath(); c.ellipse(cx-s*5,cy-s*3,s*2.5,s*3,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#1a2b4a'; c.beginPath(); c.arc(cx-s*9,cy-s*6,s*1.8,0,Math.PI*2); c.fill();
+  c.fillStyle='#fff'; c.beginPath(); c.arc(cx-s*8.5,cy-s*6.5,s*0.6,0,Math.PI*2); c.fill();
+  // long tail
+  c.strokeStyle='#8D6E63'; c.lineWidth=s*4; c.lineCap='round';
+  c.beginPath(); c.moveTo(cx+s*9,cy); c.quadraticCurveTo(cx+s*22,cy+s*4,cx+s*26,cy-s*4); c.stroke();
+  pLabel(c,cx-s*22,cy+s*24,'飛鼠 Flying Squirrel','滑翔皮膜、夜行動物',s,'#5D4037');
 }
 
 // ─── INIT ──────────────────────────────────────────────────
