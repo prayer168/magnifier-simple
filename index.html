@@ -35,8 +35,11 @@ header .sub{font-size:15px;opacity:.85;margin-top:4px;}
 /* Slider */
 .slider-row{display:flex;align-items:center;gap:14px;margin-top:18px;flex-wrap:wrap;}
 .slider-row label{font-size:17px;font-weight:700;color:#1a2b4a;white-space:nowrap;}
-input[type=range]{flex:1;min-width:160px;height:8px;cursor:pointer;accent-color:#1565c0;}
+input[type=range]{width:100%;height:8px;cursor:pointer;accent-color:#1565c0;}
 .sval{font-size:20px;font-weight:800;color:#1565c0;min-width:70px;}
+.slider-wrap{flex:1;min-width:160px;display:flex;flex-direction:column;gap:0;}
+.tick-ruler{position:relative;height:20px;margin-top:3px;}
+.tick-ruler span{position:absolute;font-size:10px;color:#90a4ae;transform:translateX(-50%);}
 
 /* Info strip */
 .info-strip{border-radius:12px;padding:16px 20px;margin-top:16px;font-size:16px;line-height:1.85;border-left:5px solid #42a5f5;background:#e8f3ff;}
@@ -280,8 +283,11 @@ canvas{display:block;width:100%;max-width:100%;border-radius:10px;}
     <canvas id="simC" height="300"></canvas>
     <div class="slider-row">
       <label>🕯️ 物距</label>
-      <input type="range" id="slSim" min="4" max="90" value="75" oninput="updateSim()">
-      <div class="sval" id="sdVal">75 cm</div>
+      <div class="slider-wrap">
+        <input type="range" id="slSim" min="4" max="90" value="47" list="physTicks" oninput="updateSim()">
+        <div class="tick-ruler" id="simRuler"></div>
+      </div>
+      <div class="sval" id="sdVal">47 cm</div>
     </div>
   </div>
   <div class="info-strip">
@@ -314,9 +320,17 @@ canvas{display:block;width:100%;max-width:100%;border-radius:10px;}
     <canvas id="rayC" height="380"></canvas>
     <div class="slider-row">
       <label>🕯️ 物距</label>
-      <input type="range" id="slRay" min="4" max="90" value="55" oninput="updateRay()">
-      <div class="sval" id="rdVal">55 cm</div>
+      <div class="slider-wrap">
+        <input type="range" id="slRay" min="4" max="90" value="47" list="physTicks" oninput="updateRay()">
+        <div class="tick-ruler" id="rayRuler"></div>
+      </div>
+      <div class="sval" id="rdVal">47 cm</div>
     </div>
+    <datalist id="physTicks">
+      <option value="10"></option><option value="20"></option><option value="30"></option>
+      <option value="40"></option><option value="50"></option><option value="60"></option>
+      <option value="70"></option><option value="80"></option><option value="90"></option>
+    </datalist>
   </div>
   <div class="info-strip">
     <strong>三條標準光線說明</strong>
@@ -732,13 +746,23 @@ function arrowLine(c,x1,y1,x2,y2,col,lw){
 
 function drawLens(c,lx,ay,lh){
   lh=lh||140;
-  c.strokeStyle='#1565c0';c.lineWidth=5;
-  c.beginPath();c.moveTo(lx,ay-lh/2);c.lineTo(lx,ay+lh/2);c.stroke();
+  const hw=Math.min(22,lh*0.15); // bulge half-width
+  c.save();
+  // biconvex lens fill
+  c.beginPath();
+  c.moveTo(lx,ay-lh/2);
+  c.quadraticCurveTo(lx+hw,ay,lx,ay+lh/2);
+  c.quadraticCurveTo(lx-hw,ay,lx,ay-lh/2);
+  c.closePath();
+  c.fillStyle='rgba(21,101,192,0.15)';c.fill();
+  c.strokeStyle='#1565c0';c.lineWidth=2.5;c.stroke();
+  // arrow tips
   c.fillStyle='#1565c0';
   [[lx,ay-lh/2,lx-8,ay-lh/2+14,lx+8,ay-lh/2+14],
    [lx,ay+lh/2,lx-8,ay+lh/2-14,lx+8,ay+lh/2-14]].forEach(pts=>{
     c.beginPath();c.moveTo(pts[0],pts[1]);c.lineTo(pts[2],pts[3]);c.lineTo(pts[4],pts[5]);c.closePath();c.fill();
   });
+  c.restore();
   c.fillStyle='#1565c0';c.font='bold 13px sans-serif';
   c.fillText('凸透鏡',lx+8,ay-lh/2+10);
 }
@@ -2946,7 +2970,21 @@ buildKnow();
 buildStory();
 buildQuiz();
 buildQAPanel();
+function buildRuler(id, min, max) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  for (let v = 10; v <= max; v += 10) {
+    const pct = (v - min) / (max - min) * 100;
+    const s = document.createElement('span');
+    s.textContent = v;
+    s.style.left = pct + '%';
+    el.appendChild(s);
+  }
+}
+
 window.addEventListener('load',()=>{
+  buildRuler('simRuler', 4, 90);
+  buildRuler('rayRuler', 4, 90);
   resizeSim(); updateSim();
   resizeRay(); updateRay();
   resizeMag();
