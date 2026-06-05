@@ -14,26 +14,26 @@
   --radius:14px;--shadow:0 4px 20px rgba(21,101,192,.12);
 }
 body{font-family:'Noto Sans TC','微軟正黑體',sans-serif;background:#f0f5ff;
-  color:var(--navy);font-size:16px;line-height:1.8;}
+  color:var(--navy);font-size:18px;line-height:1.9;}
 
 /* ── Hero Header ────────────────────────── */
 .hero{background:linear-gradient(135deg,#0d47a1,#1565c0 40%,#42a5f5);
   color:#fff;padding:56px 40px 48px;text-align:center;}
 .hero-badge{display:inline-block;background:rgba(255,255,255,.18);
   border:1.5px solid rgba(255,255,255,.4);border-radius:30px;
-  padding:6px 20px;font-size:13px;letter-spacing:.06em;margin-bottom:18px;}
-.hero h1{font-size:clamp(22px,4vw,36px);font-weight:900;letter-spacing:.04em;margin-bottom:10px;}
-.hero .sub{font-size:15px;opacity:.85;margin-bottom:28px;}
+  padding:6px 20px;font-size:15px;letter-spacing:.06em;margin-bottom:18px;}
+.hero h1{font-size:clamp(26px,4vw,42px);font-weight:900;letter-spacing:.04em;margin-bottom:10px;}
+.hero .sub{font-size:17px;opacity:.85;margin-bottom:28px;}
 .hero-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;}
 .hero-tag{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
-  border-radius:20px;padding:5px 16px;font-size:13px;}
+  border-radius:20px;padding:5px 16px;font-size:15px;}
 
 /* ── Nav Anchor ─────────────────────────── */
 .toc-wrap{background:#fff;border-bottom:2px solid #d0e4ff;
   position:sticky;top:0;z-index:100;padding:0 32px;
   box-shadow:0 2px 10px rgba(21,101,192,.08);}
 .toc{display:flex;gap:4px;overflow-x:auto;padding:4px 0;}
-.toc a{padding:10px 18px;font-size:14px;font-weight:700;color:var(--gray);
+.toc a{padding:10px 18px;font-size:16px;font-weight:700;color:var(--gray);
   border-bottom:3px solid transparent;text-decoration:none;white-space:nowrap;
   transition:all .2s;border-radius:6px 6px 0 0;}
 .toc a:hover,.toc a.active{color:var(--blue);border-bottom-color:var(--blue);background:#f0f6ff;}
@@ -44,7 +44,7 @@ section{margin-bottom:64px;}
 .sec-head{display:flex;align-items:center;gap:14px;margin-bottom:28px;
   padding-bottom:14px;border-bottom:2px solid #d0e4ff;}
 .sec-icon{font-size:28px;}
-.sec-title{font-size:24px;font-weight:900;color:var(--blue);}
+.sec-title{font-size:28px;font-weight:900;color:var(--blue);}
 
 /* ── Cards ──────────────────────────────── */
 .card{background:var(--card);border-radius:var(--radius);
@@ -55,13 +55,13 @@ section{margin-bottom:64px;}
 .stat-row{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:24px;}
 .stat{flex:1;min-width:140px;background:var(--blue-bg);border-radius:12px;
   padding:18px 20px;text-align:center;}
-.stat-num{font-size:32px;font-weight:900;color:var(--blue);}
-.stat-lbl{font-size:13px;color:var(--gray);margin-top:4px;}
+.stat-num{font-size:38px;font-weight:900;color:var(--blue);}
+.stat-lbl{font-size:15px;color:var(--gray);margin-top:4px;}
 
 /* ── Tech Stack ─────────────────────────── */
 .tech-pill{display:inline-flex;align-items:center;gap:8px;
   background:#fff;border:2px solid #c8deff;border-radius:30px;
-  padding:8px 18px;font-size:14px;font-weight:700;color:var(--navy);
+  padding:8px 18px;font-size:16px;font-weight:700;color:var(--navy);
   margin:5px;}
 .tech-pill .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 .dot-html{background:#e34c26;} .dot-css{background:#264de4;}
@@ -70,13 +70,13 @@ section{margin-bottom:64px;}
 .dot-svg{background:#ff9800;}
 
 /* ── Module Table ───────────────────────── */
-.mod-table{width:100%;border-collapse:collapse;font-size:15px;}
+.mod-table{width:100%;border-collapse:collapse;font-size:17px;}
 .mod-table th{background:var(--blue);color:#fff;padding:12px 16px;text-align:left;font-weight:700;}
 .mod-table td{padding:13px 16px;border-bottom:1px solid #e0eeff;vertical-align:top;}
 .mod-table tr:nth-child(even) td{background:#f5f9ff;}
 .mod-table tr:last-child td{border-bottom:none;}
-.tag{display:inline-block;border-radius:6px;padding:2px 9px;
-  font-size:12px;font-weight:700;margin:2px;}
+.tag{display:inline-block;border-radius:6px;padding:3px 10px;
+  font-size:14px;font-weight:700;margin:2px;}
 .tag-blue{background:#dbeafe;color:#1e40af;}
 .tag-green{background:#dcfce7;color:#166534;}
 .tag-amber{background:#fef9c3;color:#92400e;}
@@ -84,7 +84,7 @@ section{margin-bottom:64px;}
 
 /* ── Code Block ─────────────────────────── */
 pre{background:#1e293b;color:#e2e8f0;border-radius:10px;
-  padding:20px 22px;font-size:13.5px;line-height:1.7;overflow-x:auto;margin:12px 0;}
+  padding:20px 22px;font-size:15px;line-height:1.75;overflow-x:auto;margin:12px 0;}
 code{font-family:'Fira Code','Consolas',monospace;}
 .kw{color:#7dd3fc;} .fn{color:#a5f3fc;} .cm{color:#64748b;font-style:italic;}
 .str{color:#86efac;} .num{color:#fda4af;} .op{color:#f9a8d4;}
@@ -92,9 +92,9 @@ code{font-family:'Fira Code','Consolas',monospace;}
 /* ── Formula ─────────────────────────────── */
 .formula-box{background:linear-gradient(135deg,#1a2b4a,#1565c0);
   color:#fff;border-radius:14px;padding:28px 32px;text-align:center;margin:18px 0;}
-.formula-big{font-size:28px;font-weight:900;letter-spacing:.06em;margin-bottom:10px;
+.formula-big{font-size:34px;font-weight:900;letter-spacing:.06em;margin-bottom:10px;
   font-family:'Fira Code',monospace;}
-.formula-desc{font-size:14px;opacity:.85;line-height:1.9;}
+.formula-desc{font-size:16px;opacity:.85;line-height:1.9;}
 
 /* ── Timeline ───────────────────────────── */
 .timeline{position:relative;padding-left:36px;}
@@ -104,18 +104,18 @@ code{font-family:'Fira Code','Consolas',monospace;}
 .tl-dot{position:absolute;left:-28px;top:4px;width:16px;height:16px;
   border-radius:50%;background:var(--blue);border:3px solid #fff;
   box-shadow:0 0 0 3px var(--blue-lt);}
-.tl-title{font-weight:800;font-size:15px;color:var(--navy);margin-bottom:4px;}
-.tl-commit{font-size:12px;color:var(--gray);font-family:'Fira Code',monospace;
+.tl-title{font-weight:800;font-size:18px;color:var(--navy);margin-bottom:4px;}
+.tl-commit{font-size:14px;color:var(--gray);font-family:'Fira Code',monospace;
   background:#f0f5ff;padding:2px 8px;border-radius:5px;margin-bottom:6px;display:inline-block;}
-.tl-desc{font-size:14px;color:var(--gray);line-height:1.7;}
+.tl-desc{font-size:16px;color:var(--gray);line-height:1.8;}
 
 /* ── Scene Cards ────────────────────────── */
 .scene-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;}
 .scene-card{border-radius:12px;padding:18px 16px;text-align:center;
   border:2px solid transparent;}
 .scene-card .sc-icon{font-size:32px;margin-bottom:8px;}
-.scene-card .sc-name{font-weight:800;font-size:15px;margin-bottom:4px;}
-.scene-card .sc-desc{font-size:12px;color:var(--gray);line-height:1.6;}
+.scene-card .sc-name{font-weight:800;font-size:17px;margin-bottom:4px;}
+.scene-card .sc-desc{font-size:14px;color:var(--gray);line-height:1.6;}
 .sc-green{background:#f0fdf4;border-color:#bbf7d0;}
 .sc-blue{background:#eff6ff;border-color:#bfdbfe;}
 .sc-yellow{background:#fefce8;border-color:#fde68a;}
@@ -123,20 +123,20 @@ code{font-family:'Fira Code','Consolas',monospace;}
 .sc-slate{background:#f8fafc;border-color:#cbd5e1;}
 
 /* ── RWD Table ──────────────────────────── */
-.bp-table{width:100%;border-collapse:collapse;font-size:14px;}
+.bp-table{width:100%;border-collapse:collapse;font-size:16px;}
 .bp-table th{background:#1a2b4a;color:#fff;padding:10px 14px;font-weight:700;}
 .bp-table td{padding:10px 14px;border-bottom:1px solid #e0eeff;}
 .bp-table tr:nth-child(even) td{background:#f5f9ff;}
 
 /* ── Highlight bar ──────────────────────── */
 .hl-bar{border-left:5px solid var(--blue);background:var(--blue-bg);
-  border-radius:0 10px 10px 0;padding:14px 20px;margin:14px 0;font-size:15px;}
+  border-radius:0 10px 10px 0;padding:14px 20px;margin:14px 0;font-size:17px;}
 .hl-bar.green{border-color:var(--green);background:#f0fdf4;}
 .hl-bar.amber{border-color:var(--amber);background:#fff7ed;}
 
 /* ── Footer ─────────────────────────────── */
 footer{background:#1a2b4a;color:#90a4ae;text-align:center;
-  padding:32px 24px;font-size:13px;line-height:2;}
+  padding:32px 24px;font-size:15px;line-height:2;}
 footer strong{color:#90caf9;}
 
 /* ── Responsive ─────────────────────────── */
