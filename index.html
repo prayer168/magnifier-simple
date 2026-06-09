@@ -484,6 +484,7 @@ function switchTab(btn, id) {
 
 // ─── SHARED CONSTANTS ──────────────────────────────────────
 const F = 20; // focal length cm
+const OBJ_H = 20; // object height cm
 
 function imgInfo(u) {
   if (u > 2*F+1)  return {label:'倒立縮小的像（實像）',  color:'#1565c0', inv:true,  virt:false, desc:'物距大於2倍焦距，光線聚焦在另一側，形成倒立、縮小的實像，可投影在螢幕上。生活應用：相機、眼睛。'};
@@ -522,7 +523,7 @@ function drawSim(u, info) {
   const lx   = Math.round(W * 0.52);       // lens x
   const ay   = Math.round(H * 0.55);       // axis y
   const fPx  = F * sc;
-  const ch   = 60;                          // candle height px
+  const ch   = OBJ_H * sc;                  // candle height px
 
   // axis
   dashed(c, 10, ay, W-10, ay, '#b0c4de', 1.5, [7,5]);
@@ -547,6 +548,7 @@ function drawSim(u, info) {
   const ox = lx - u*sc;
   if (ox > 8) {
     drawCandle(c, ox, ay, ch, false, 1);
+    drawHeightLabel(c, ox-18, ay-ch, ay, '物高 '+OBJ_H+' cm', '#92400e', 'left');
     c.fillStyle='#92400e'; c.font='bold 13px sans-serif';
     c.fillText('物體', ox-22, ay-ch-22);
     // distance arrow
@@ -563,9 +565,11 @@ function drawSim(u, info) {
     const ix = lx + v*sc;
     const ih = ch*(v/u);
     if (ix > lx+4 && ix < W-8) {
-      drawCandle(c, ix, ay, Math.min(ih,H*0.38), true, 0.6);
+      const drawnIh = Math.min(ih,H*0.38);
+      drawCandle(c, ix, ay, drawnIh, true, 0.6);
+      drawHeightLabel(c, ix+18, ay, ay+drawnIh, '像高 '+formatCm(OBJ_H*Math.abs(v/u))+' cm', '#0277bd', 'right');
       c.fillStyle='#0277bd'; c.font='13px sans-serif';
-      c.fillText('像 ('+Math.round(v)+' cm)', ix-22, ay+(info.inv?Math.min(ih,H*0.38)+20:-20));
+      c.fillText('像 ('+Math.round(v)+' cm)', ix-22, ay+(info.inv?drawnIh+20:-20));
     }
   } else if (info.virt) {
     // virtual image same side
@@ -573,9 +577,11 @@ function drawSim(u, info) {
     const ix = lx + v*sc; // left of lens
     const ih = Math.abs(ch*(v/u));
     if (ix > 8 && ix < lx-4) {
-      drawCandle(c, ix, ay, Math.min(ih, H*0.45), false, 0.45, true);
+      const drawnIh = Math.min(ih, H*0.45);
+      drawCandle(c, ix, ay, drawnIh, false, 0.45, true);
+      drawHeightLabel(c, ix-18, ay-drawnIh, ay, '像高 '+formatCm(OBJ_H*Math.abs(v/u))+' cm', '#2e7d32', 'left');
       c.fillStyle='#2e7d32'; c.font='13px sans-serif';
-      c.fillText('虛像（正立放大）', ix-44, ay-Math.min(ih,H*0.45)-16);
+      c.fillText('虛像（正立放大）', ix-44, ay-drawnIh-16);
     }
   }
 }
@@ -610,7 +616,7 @@ function drawRay(u) {
   const lx  = Math.round(W*0.52);
   const ay  = Math.round(H*0.50);
   const fPx = F*sc;
-  const oh  = 55;
+  const oh  = OBJ_H * sc;
 
   // axis
   dashed(c,10,ay,W-10,ay,'#90a4ae',2,[10,5]);
@@ -634,6 +640,7 @@ function drawRay(u) {
   const oy = ay - oh;
   if (ox>8) {
     arrowLine(c, ox,ay, ox,oy, '#f59e0b',3);
+    drawHeightLabel(c, ox-18, oy, ay, '物高 '+OBJ_H+' cm', '#92400e', 'left');
     c.fillStyle='#f97316';
     c.beginPath();c.ellipse(ox,oy-9,5,9,0,0,Math.PI*2);c.fill();
     c.fillStyle='#92400e';c.font='bold 14px sans-serif';c.fillText('物',ox-8,oy-24);
@@ -691,6 +698,7 @@ function drawRay(u) {
     // image
     if(ix>lx+4&&ix<W-8){
       arrowLine(c,ix,ay,ix,iy,'#2196f3',3);
+      drawHeightLabel(c, ix+18, ay, iy, '像高 '+formatCm(OBJ_H*Math.abs(v/u))+' cm', '#0d47a1', 'right');
       c.beginPath();c.arc(ix,iy,6,0,Math.PI*2);
       c.fillStyle='#dc2626';c.fill();
       c.fillStyle='#0d47a1';c.font='bold 14px sans-serif';
@@ -727,6 +735,7 @@ function drawRay(u) {
       c.strokeStyle='#2e7d32';c.lineWidth=2;
       c.beginPath();c.moveTo(ix,ay);c.lineTo(ix,iy);c.stroke();
       c.setLineDash([]);
+      drawHeightLabel(c, ix-18, iy, ay, '像高 '+formatCm(OBJ_H*Math.abs(v/u))+' cm', '#1b5e20', 'left');
       c.fillStyle='#1b5e20';c.font='bold 14px sans-serif';
       c.fillText('虛像',ix-38,iy-12);
     }
@@ -768,6 +777,32 @@ function arrowLine(c,x1,y1,x2,y2,col,lw){
   c.strokeStyle=col;c.lineWidth=lw;
   line(c,x1,y1,x2,y2);
   arrowHead(c,x2,y2,col,Math.atan2(y2-y1,x2-x1));
+}
+
+function formatCm(n){
+  const rounded = Math.round(n*10)/10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+function drawHeightLabel(c,x,y1,y2,text,col,side){
+  const top = Math.min(y1,y2);
+  const bot = Math.max(y1,y2);
+  const dir = side === 'left' ? -1 : 1;
+  const tick = 8;
+  c.save();
+  c.strokeStyle=col;c.fillStyle=col;c.lineWidth=1.8;
+  line(c,x,top,x,bot);
+  line(c,x,top,x+dir*tick,top);
+  line(c,x,bot,x+dir*tick,bot);
+  c.font='bold 12px sans-serif';
+  const tw = c.measureText(text).width;
+  const tx = x + dir*(tick+6) - (side === 'left' ? tw : 0);
+  const ty = (top+bot)/2 + 4;
+  c.fillStyle='rgba(255,255,255,0.88)';
+  c.fillRect(tx-4, ty-15, tw+8, 20);
+  c.fillStyle=col;
+  c.fillText(text, tx, ty);
+  c.restore();
 }
 
 function drawLens(c,lx,ay,lh){
