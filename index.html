@@ -569,10 +569,9 @@ function drawSim(u, info) {
       drawCandle(c, ix, ay, drawnIh, true, 0.6);
       const imgH = OBJ_H*Math.abs(v/u);
       drawHeightLabel(c, ix+18, ay, ay+drawnIh, '像高 '+formatCm(imgH)+' cm', '#0277bd', 'right');
-      c.fillStyle='#0277bd'; c.font='13px sans-serif';
       const imgLabelY = Math.min(ay+drawnIh+20, H-28);
-      c.fillText('像', ix-8, imgLabelY);
-      c.fillText('像距 '+formatCm(v)+' cm', ix-30, imgLabelY+16);
+      drawTextLabel(c, ix-12, imgLabelY, '像', '#0277bd', 'right');
+      drawTextLabel(c, ix-12, imgLabelY+16, '像距 '+formatCm(v)+' cm', '#0277bd', 'right');
     }
   } else if (info.virt) {
     // virtual image same side
@@ -708,9 +707,8 @@ function drawRay(u) {
       c.beginPath();c.arc(ix,iy,6,0,Math.PI*2);
       c.fillStyle='#dc2626';c.fill();
       c.fillStyle='#0d47a1';c.font='bold 14px sans-serif';
-      c.fillText('像',ix+8,ay+(iy-ay)/2);
-      c.font='12px sans-serif';
-      c.fillText('像距 '+formatCm(v)+' cm',ix-28,iy+22);
+      drawTextLabel(c, ix-12, ay+(iy-ay)/2, '像', '#0d47a1', 'right');
+      drawTextLabel(c, ix-12, iy+22, '像距 '+formatCm(v)+' cm', '#0d47a1', 'right');
     }
 
   } else {
@@ -813,6 +811,20 @@ function drawHeightLabel(c,x,y1,y2,text,col,side){
   c.fillRect(tx-4, ty-15, tw+8, 20);
   c.fillStyle=col;
   c.fillText(text, tx, ty);
+  c.restore();
+}
+
+function drawTextLabel(c,x,y,text,col,align){
+  c.save();
+  c.font='bold 12px sans-serif';
+  const tw = c.measureText(text).width;
+  const padX = 4;
+  const padY = 3;
+  const tx = align === 'right' ? x-tw-6 : x+6;
+  c.fillStyle='rgba(255,255,255,0.9)';
+  c.fillRect(tx-padX, y-12-padY, tw+padX*2, 15+padY*2);
+  c.fillStyle=col;
+  c.fillText(text, tx, y);
   c.restore();
 }
 
