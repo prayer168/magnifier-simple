@@ -310,10 +310,10 @@ canvas{display:block;width:100%;max-width:100%;border-radius:10px;}
     <div class="slider-row">
       <label>🕯️ 物距</label>
       <div class="slider-wrap">
-        <input type="range" id="slSim" min="4" max="90" value="47" list="physTicks" oninput="updateSim()">
+        <input type="range" id="slSim" min="4" max="90" value="40" list="physTicks" oninput="updateSim()">
         <div class="tick-ruler" id="simRuler"></div>
       </div>
-      <div class="sval" id="sdVal">47 cm</div>
+      <div class="sval" id="sdVal">40 cm</div>
     </div>
   </div>
   <div class="info-strip">
@@ -347,10 +347,10 @@ canvas{display:block;width:100%;max-width:100%;border-radius:10px;}
     <div class="slider-row">
       <label>🕯️ 物距</label>
       <div class="slider-wrap">
-        <input type="range" id="slRay" min="4" max="90" value="47" list="physTicks" oninput="updateRay()">
+        <input type="range" id="slRay" min="4" max="90" value="40" list="physTicks" oninput="updateRay()">
         <div class="tick-ruler" id="rayRuler"></div>
       </div>
-      <div class="sval" id="rdVal">47 cm</div>
+      <div class="sval" id="rdVal">40 cm</div>
     </div>
     <datalist id="physTicks">
       <option value="10"></option><option value="20"></option><option value="30"></option>
@@ -567,9 +567,12 @@ function drawSim(u, info) {
     if (ix > lx+4 && ix < W-8) {
       const drawnIh = Math.min(ih,H*0.38);
       drawCandle(c, ix, ay, drawnIh, true, 0.6);
-      drawHeightLabel(c, ix+18, ay, ay+drawnIh, '像高 '+formatCm(OBJ_H*Math.abs(v/u))+' cm', '#0277bd', 'right');
+      const imgH = OBJ_H*Math.abs(v/u);
+      drawHeightLabel(c, ix+18, ay, ay+drawnIh, '像高 '+formatCm(imgH)+' cm', '#0277bd', 'right');
       c.fillStyle='#0277bd'; c.font='13px sans-serif';
-      c.fillText('像 ('+Math.round(v)+' cm)', ix-22, ay+(info.inv?drawnIh+20:-20));
+      const imgLabelY = Math.min(ay+drawnIh+20, H-28);
+      c.fillText('像', ix-8, imgLabelY);
+      c.fillText('像距 '+formatCm(v)+' cm', ix-30, imgLabelY+16);
     }
   } else if (info.virt) {
     // virtual image same side
@@ -579,9 +582,11 @@ function drawSim(u, info) {
     if (ix > 8 && ix < lx-4) {
       const drawnIh = Math.min(ih, H*0.45);
       drawCandle(c, ix, ay, drawnIh, false, 0.45, true);
-      drawHeightLabel(c, ix-18, ay-drawnIh, ay, '像高 '+formatCm(OBJ_H*Math.abs(v/u))+' cm', '#2e7d32', 'left');
+      const imgH = OBJ_H*Math.abs(v/u);
+      drawHeightLabel(c, ix-18, ay-drawnIh, ay, '像高 '+formatCm(imgH)+' cm', '#2e7d32', 'left');
       c.fillStyle='#2e7d32'; c.font='13px sans-serif';
       c.fillText('虛像（正立放大）', ix-44, ay-drawnIh-16);
+      c.fillText('像距 '+formatCm(Math.abs(v))+' cm', ix-34, ay+22);
     }
   }
 }
@@ -698,11 +703,14 @@ function drawRay(u) {
     // image
     if(ix>lx+4&&ix<W-8){
       arrowLine(c,ix,ay,ix,iy,'#2196f3',3);
-      drawHeightLabel(c, ix+18, ay, iy, '像高 '+formatCm(OBJ_H*Math.abs(v/u))+' cm', '#0d47a1', 'right');
+      const imgH = OBJ_H*Math.abs(v/u);
+      drawHeightLabel(c, ix+18, ay, iy, '像高 '+formatCm(imgH)+' cm', '#0d47a1', 'right');
       c.beginPath();c.arc(ix,iy,6,0,Math.PI*2);
       c.fillStyle='#dc2626';c.fill();
       c.fillStyle='#0d47a1';c.font='bold 14px sans-serif';
       c.fillText('像',ix+8,ay+(iy-ay)/2);
+      c.font='12px sans-serif';
+      c.fillText('像距 '+formatCm(v)+' cm',ix-28,iy+22);
     }
 
   } else {
@@ -735,9 +743,12 @@ function drawRay(u) {
       c.strokeStyle='#2e7d32';c.lineWidth=2;
       c.beginPath();c.moveTo(ix,ay);c.lineTo(ix,iy);c.stroke();
       c.setLineDash([]);
-      drawHeightLabel(c, ix-18, iy, ay, '像高 '+formatCm(OBJ_H*Math.abs(v/u))+' cm', '#1b5e20', 'left');
+      const imgH = OBJ_H*Math.abs(v/u);
+      drawHeightLabel(c, ix-18, iy, ay, '像高 '+formatCm(imgH)+' cm', '#1b5e20', 'left');
       c.fillStyle='#1b5e20';c.font='bold 14px sans-serif';
       c.fillText('虛像',ix-38,iy-12);
+      c.font='12px sans-serif';
+      c.fillText('像距 '+formatCm(Math.abs(v))+' cm',ix-36,ay+24);
     }
   }
 
