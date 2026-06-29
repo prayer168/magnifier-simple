@@ -295,10 +295,7 @@ canvas{display:block;width:100%;max-width:100%;border-radius:10px;}
   <button class="tab-btn active" data-tab="sim" onclick="switchTab(this,'sim')">🕯️ 成像模擬</button>
   <button class="tab-btn" data-tab="ray" onclick="switchTab(this,'ray')">📐 光線路徑</button>
   <button class="tab-btn" data-tab="mag" onclick="switchTab(this,'mag')">🔬 放大鏡模擬</button>
-  <button class="tab-btn" data-tab="know" onclick="switchTab(this,'know')">💡 光學常識</button>
-  <button class="tab-btn" data-tab="story" onclick="switchTab(this,'story')">📚 光學小故事</button>
   <button class="tab-btn" data-tab="quiz" onclick="switchTab(this,'quiz')">🎯 素養測驗</button>
-  <button class="tab-btn" data-tab="qa" onclick="switchTab(this,'qa')">📖 專有名詞</button>
 </div>
 
 <!-- ===== TAB 1: 成像模擬 ===== -->
@@ -358,6 +355,7 @@ canvas{display:block;width:100%;max-width:100%;border-radius:10px;}
       <option value="70"></option><option value="80"></option><option value="90"></option>
     </datalist>
   </div>
+  <div class="info-strip" id="rayResult"></div>
   <div class="info-strip">
     <strong>三條標準光線說明</strong>
     🔴 <b>平行光軸</b>：入射後折射通過右焦點 F'<br>
@@ -407,7 +405,7 @@ canvas{display:block;width:100%;max-width:100%;border-radius:10px;}
 </div>
 
 <!-- ===== TAB 3: 光學常識 ===== -->
-<div id="tab-know" class="tab-pane">
+<div id="tab-know" class="tab-pane" hidden>
   <div class="sec-title">💡 光學小常識</div>
   <div class="sec-desc">點選左側主題，右側即顯示說明與示意圖。</div>
   <div class="know-layout">
@@ -417,7 +415,7 @@ canvas{display:block;width:100%;max-width:100%;border-radius:10px;}
 </div>
 
 <!-- ===== TAB 4: 光學小故事 ===== -->
-<div id="tab-story" class="tab-pane">
+<div id="tab-story" class="tab-pane" hidden>
   <div class="sec-title">📚 光學小故事</div>
   <div class="sec-desc">六個真實的光學歷史故事，從科學家的發現到改變世界的發明，帶你穿越時空！</div>
   <div class="know-layout">
@@ -431,7 +429,7 @@ canvas{display:block;width:100%;max-width:100%;border-radius:10px;}
   <div class="sec-title">🎯 素養導向測驗</div>
   <div class="sec-desc">結合生活情境，每題只能選一次。選完後立即看解析，全部作答後可查看總成績！</div>
   <div class="quiz-bar">
-    <span>📝 共 <b>8</b> 題選擇題</span>
+    <span>📝 共 <b>6</b> 題選擇題</span>
     <span id="scoreDis">已答對：<b>0</b> 題</span>
   </div>
   <div id="quizArea"></div>
@@ -446,7 +444,7 @@ canvas{display:block;width:100%;max-width:100%;border-radius:10px;}
 </div>
 
 <!-- ===== TAB 6: 專有名詞 Q&A ===== -->
-<div id="tab-qa" class="tab-pane">
+<div id="tab-qa" class="tab-pane" hidden>
   <div class="sec-title">📖 專有名詞 Q&A</div>
   <div class="sec-desc">點選左側名詞，右側即顯示定義、示意圖與生活連結。共 16 個關鍵詞彙。</div>
   <div class="know-layout">
@@ -603,7 +601,34 @@ function resizeRay() {
 function updateRay() {
   const u = +document.getElementById('slRay').value;
   document.getElementById('rdVal').textContent = u + ' cm';
+  const result = raySummary(u);
+  document.getElementById('rayResult').innerHTML =
+    `<strong style="color:${result.color}">${result.label}</strong><span>${result.desc}</span>`;
   drawRay(u);
+}
+
+function raySummary(u) {
+  if (Math.abs(u-F) <= 2) {
+    return {label:'接近焦點：無清楚成像', color:'#e65100',
+      desc:'　物距接近焦距，折射後光線幾乎平行，像距會變得很遠，因此螢幕上不容易接到清楚的像。'};
+  }
+  const v = F*u/(u-F);
+  const imgH = OBJ_H*Math.abs(v/u);
+  if (u > 2*F+1) {
+    return {label:'倒立縮小的實像', color:'#1565c0',
+      desc:`　像在透鏡另一側，像距約 ${formatCm(v)} cm，像高約 ${formatCm(imgH)} cm。`};
+  }
+  if (u >= 2*F-1) {
+    return {label:'倒立等大的實像', color:'#6a1b9a',
+      desc:`　物距約等於 2 倍焦距，像距約 ${formatCm(v)} cm，像高約 ${formatCm(imgH)} cm。`};
+  }
+  if (u > F+2) {
+    return {label:'倒立放大的實像', color:'#00838f',
+      desc:`　像在透鏡另一側，像距約 ${formatCm(v)} cm，像高約 ${formatCm(imgH)} cm；像可能超出畫面，請看邊界提示。`};
+  }
+  const virtualDistance = Math.abs(v);
+  return {label:'正立放大的虛像', color:'#2e7d32',
+    desc:`　像在物體同側，像距約 ${formatCm(virtualDistance)} cm，像高約 ${formatCm(imgH)} cm；虛像只能用眼睛觀察，無法投影在螢幕上。`};
 }
 
 function drawRay(u) {
@@ -650,9 +675,24 @@ function drawRay(u) {
     c.fillStyle='#92400e';c.font='bold 14px sans-serif';c.fillText('物',ox-8,oy-24);
   }
 
+  const nearFocus = Math.abs(u-F) <= 2;
   const real = u > F+2;
 
-  if (real) {
+  if (nearFocus) {
+    c.strokeStyle='#ef4444';c.lineWidth=2.5;
+    line(c,ox,oy,lx,oy);
+    line(c,lx,oy,W-8,oy);
+    arrowHead(c,W-8,oy,'#ef4444',0);
+    const slp3=(ay-oy)/(lx-ox);
+    c.strokeStyle='#1565c0';c.lineWidth=2.5;
+    line(c,ox,oy,lx,ay);
+    line(c,lx,ay,W-8,ay+slp3*(W-8-lx));
+    drawImageHint(c,'right',ay,[
+      '接近焦點',
+      '光線近似平行',
+      '無清楚成像'
+    ],'#e65100');
+  } else if (real) {
     const v  = F*u/(u-F);
     const ix = lx + v*sc;
     const iy = ay + oh*(v/u); // inverted → below axis
@@ -709,6 +749,13 @@ function drawRay(u) {
       c.fillStyle='#0d47a1';c.font='bold 14px sans-serif';
       drawTextLabel(c, ix-12, ay+(iy-ay)/2, '像', '#0d47a1', 'right');
       drawTextLabel(c, ix-12, iy+22, '像距 '+formatCm(v)+' cm', '#0d47a1', 'right');
+    } else {
+      const imgH = OBJ_H*Math.abs(v/u);
+      drawImageHint(c, ix >= W ? 'right' : 'left', ay, [
+        ix >= W ? '像在右方較遠處' : '像在左方較遠處',
+        '像距 '+formatCm(v)+' cm',
+        '像高 '+formatCm(imgH)+' cm'
+      ], '#0d47a1');
     }
 
   } else {
@@ -747,6 +794,13 @@ function drawRay(u) {
       c.fillText('虛像',ix-38,iy-12);
       c.font='12px sans-serif';
       c.fillText('像距 '+formatCm(Math.abs(v))+' cm',ix-36,ay+24);
+    } else {
+      const imgH = OBJ_H*Math.abs(v/u);
+      drawImageHint(c, ix < 8 ? 'left' : 'right', ay, [
+        ix < 8 ? '虛像在左方較遠處' : '虛像在右方較遠處',
+        '像距 '+formatCm(Math.abs(v))+' cm',
+        '像高 '+formatCm(imgH)+' cm'
+      ], '#1b5e20');
     }
   }
 
@@ -825,6 +879,31 @@ function drawTextLabel(c,x,y,text,col,align){
   c.fillRect(tx-padX, y-12-padY, tw+padX*2, 15+padY*2);
   c.fillStyle=col;
   c.fillText(text, tx, y);
+  c.restore();
+}
+
+function drawImageHint(c,side,ay,lines,col){
+  c.save();
+  c.font='bold 13px sans-serif';
+  const pad=10, lineH=18;
+  const w=Math.max(...lines.map(t=>c.measureText(t).width))+pad*2;
+  const h=lines.length*lineH+pad*2-4;
+  const x=side==='left'?14:c.canvas.width-w-14;
+  const y=Math.max(18,Math.min(ay-h/2,c.canvas.height-h-18));
+  c.fillStyle='rgba(255,255,255,0.92)';
+  c.strokeStyle=col;
+  c.lineWidth=1.8;
+  c.fillRect(x,y,w,h);
+  c.strokeRect(x,y,w,h);
+  c.fillStyle=col;
+  lines.forEach((t,i)=>c.fillText(t,x+pad,y+pad+13+i*lineH));
+  c.beginPath();
+  if(side==='left'){
+    c.moveTo(x+w,y+h/2-7);c.lineTo(x+w+12,y+h/2);c.lineTo(x+w,y+h/2+7);
+  }else{
+    c.moveTo(x,y+h/2-7);c.lineTo(x-12,y+h/2);c.lineTo(x,y+h/2+7);
+  }
+  c.closePath();c.fill();
   c.restore();
 }
 
@@ -1416,35 +1495,27 @@ function renderStoryPanel(){
 const QS=[
   {q:'小明用放大鏡觀察螞蟻，看到的卻是一個模糊的影像。他應該怎麼做才能看到放大清楚的螞蟻？',
    o:['把放大鏡移近螞蟻，讓物距小於焦距','把放大鏡舉得更高，離螞蟻越遠越好','換一個直徑更大的放大鏡','等到光線更充足的地方再看'],
-   a:0,e:'放大鏡觀察需讓「物距 < 焦距」，才能形成正立放大的虛像。把放大鏡靠近物體，直到影像清楚即可。'},
+   a:0,e:'在成像模擬中把物距調到小於焦距 20 cm，可看到「正立放大的像（虛像）」。'},
 
-  {q:'電影院的投影機把影像放大投射在銀幕上，這是利用凸透鏡的哪種成像原理？',
+  {q:'把物距調到 30 cm（介於焦距 20 cm 與 2 倍焦距 40 cm 之間），成像模擬會顯示哪一種像？',
    o:['物距小於焦距，形成正立放大的虛像','物距在 1~2 倍焦距間，形成倒立放大的實像','物距大於 2 倍焦距，形成倒立縮小的實像','物距等於焦距，光線平行射出'],
-   a:1,e:'投影機的底片放在鏡頭 1~2 倍焦距間，形成倒立放大的實像投在銀幕上，因此底片必須倒放才能投出正確的畫面。'},
-
-  {q:'野外求生時，阿強想用放大鏡聚光來點燃枯葉。下列哪個做法最正確？',
-   o:['把放大鏡緊貼枯葉，距離越近越好','調整放大鏡高度，讓地面上的光點最小最亮','把放大鏡盡量舉高，讓影子覆蓋枯葉','在有遮蔭的地方操作，避免陽光太強烈'],
-   a:1,e:'凸透鏡聚光需要光線聚焦在「焦點」——此時光點最小、最亮、溫度最高。距離約等於焦距時效果最好。'},
+   a:1,e:'在模擬中將物距調到 30 cm，可看到倒立、放大的實像，且像在透鏡另一側。'},
 
   {q:'實驗中，把蠟燭從遠處慢慢靠近放大鏡（固定不動），成像變化的正確順序是？',
    o:['倒立縮小 → 倒立放大 → 模糊 → 正立放大','正立放大 → 模糊 → 倒立放大 → 倒立縮小','倒立縮小 → 模糊 → 倒立放大 → 正立放大','模糊 → 倒立縮小 → 倒立放大 → 正立放大'],
-   a:0,e:'物距由遠而近：倒立縮小（>2f）→ 倒立放大（f~2f）→ 模糊（≈f）→ 正立放大（<f）。'},
-
-  {q:'奶奶說看書時字太小看不清楚，需要戴老花眼鏡。老花眼鏡的鏡片是哪一種？',
-   o:['凹透鏡（中間薄、邊緣厚）','凸透鏡（中間厚、邊緣薄）','完全平坦的透明玻璃','半月形的單面凸透鏡'],
-   a:1,e:'老花眼（遠視）的水晶體聚光能力不足，像落在視網膜後。配戴凸透鏡幫助光線先匯聚，讓像前移到視網膜，就能看清楚近處的文字。'},
-
-  {q:'阿志用手機拍照，發現路燈在照片裡是「倒立」的。最可能的原因是什麼？',
-   o:['手機鏡頭是凹透鏡，讓像倒立','路燈很遠（>2f），凸透鏡在感光元件上形成倒立縮小的實像，手機軟體沒有自動轉正','手機螢幕的折射讓畫面翻轉','光線在玻璃表面反射造成倒影'],
-   a:1,e:'手機鏡頭是凸透鏡，路燈在遠處（物距>2f），感光元件上得到倒立縮小的實像。手機通常用軟體自動轉正，若設定問題則出現倒立影像。'},
+   a:0,e:'可用滑桿從 90 cm 慢慢往 4 cm 拖曳觀察：遠處倒立縮小，靠近後倒立放大，接近焦距時模糊，再更近時變成正立放大的虛像。'},
 
   {q:'小雯把蠟燭放在放大鏡前 20 公分，紙板移到任何位置都找不到清楚的像。最可能的原因是？',
    o:['蠟燭的亮度不夠，光線太弱','20 公分正好等於這個放大鏡的焦距，光線折射後平行射出，無法聚焦','紙板顏色太深，無法顯示影像','實驗需要在完全黑暗的環境才能看到像'],
    a:1,e:'當物距等於焦距，光線折射後成平行光，不能聚焦成清楚的像，紙板無論放在哪裡都找不到清楚的影像。'},
 
-  {q:'承上題，改用焦距為 10 公分的放大鏡，蠟燭仍放在 20 公分處，最可能看到什麼像？',
-   o:['仍然模糊，因為距離沒有改變','倒立放大的像（物距介於焦距與 2 倍焦距之間）','正立放大的虛像（物距小於焦距）','倒立縮小的像（物距大於 2 倍焦距）'],
-   a:1,e:'焦距10cm，物距20cm：20 > 10（焦距）且 20 = 2×10（2倍焦距）。嚴格說此時是等大倒立的像，但若焦距稍短使20cm落在f~2f區間，就是倒立放大。這說明放大鏡焦距不同，相同距離下成像結果也不同。'},
+  {q:'預設物距為 40 cm，物高為 20 cm。此時模擬圖上顯示的像高大約是多少？',
+   o:['10 cm','20 cm','40 cm','無法成像'],
+   a:1,e:'預設物距 40 cm 等於 2 倍焦距，模擬圖會顯示倒立等大的實像，因此像高約 20 cm。'},
+
+  {q:'在光線路徑頁把物距調到 10 cm，系統會顯示哪一種成像結果？',
+   o:['正立放大的虛像，位在物體同側','倒立縮小的實像，位在透鏡另一側','沒有任何光線折射','倒立等大的實像'],
+   a:0,e:'物距 10 cm 小於焦距 20 cm，光線路徑頁會標示正立放大的虛像；虛像只能用眼睛觀察，無法投影在螢幕上。'},
 ];
 
 let uAns=new Array(QS.length).fill(-1), done=new Array(QS.length).fill(false);

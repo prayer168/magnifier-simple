@@ -1,5 +1,28 @@
 # Magnifier Project Memory
 
+## 2026-06-29 magnifier-simple 精簡版
+
+- 從 `prayer168/magnifier` clone 建立新專案 `magnifier-simple`。
+- 目標 repo：`https://github.com/prayer168/magnifier-simple`
+- 預計 Pages：`https://prayer168.github.io/magnifier-simple/`
+- 精簡版保留：
+  - 成像模擬
+  - 光線路徑
+  - 放大鏡模擬
+  - 素養測驗
+- 精簡版先移除介面入口：
+  - 光學常識
+  - 光學小故事
+  - 專有名詞
+- 光線路徑修正：
+  - 物距 `4-33 cm` 都需有成像狀態與說明。
+  - 接近焦點時顯示「無清楚成像」。
+  - 實像或虛像超出畫布時，用邊界提示框標示像在左方/右方較遠處，並顯示像距與像高。
+- 素養測驗修正：
+  - 改為 6 題。
+  - 題目答案需可透過成像模擬、光線路徑或放大鏡模擬直接推得。
+  - 移除需依賴光學常識、小故事或專有名詞頁的題目。
+
 ## 2026-06-09 修改紀錄
 
 - 教材頁面：`index.html`
