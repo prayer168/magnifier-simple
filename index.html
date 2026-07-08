@@ -485,11 +485,32 @@ const F = 20; // focal length cm
 const OBJ_H = 20; // object height cm
 
 function imgInfo(u) {
-  if (u > 2*F+1)  return {label:'倒立縮小的像（實像）',  color:'#1565c0', inv:true,  virt:false, desc:'物距大於2倍焦距，光線聚焦在另一側，形成倒立、縮小的實像，可投影在螢幕上。生活應用：相機、眼睛。'};
-  if (u >= 2*F-1) return {label:'倒立等大的像（實像）',  color:'#6a1b9a', inv:true,  virt:false, desc:'物距等於2倍焦距，形成倒立、等大的實像。此距離也稱為「等倍點」。'};
-  if (u > F+1)    return {label:'倒立放大的像（實像）',  color:'#00838f', inv:true,  virt:false, desc:'物距在1~2倍焦距之間，形成倒立、放大的實像。生活應用：投影機、幻燈機（底片須倒放）。'};
-  if (u >= F-2)   return {label:'模糊不清（接近焦點）',  color:'#e65100', inv:false, virt:false, desc:'物距接近焦距，光線折射後趨近平行，無法聚焦成清楚的像。此距離可讓凸透鏡聚光點火！'};
-  return           {label:'正立放大的像（虛像）',         color:'#2e7d32', inv:false, virt:true,  desc:'物距小於焦距，光線折射後發散，向後延伸交於同側，形成正立、放大的虛像。生活應用：放大鏡、老花眼鏡。'};
+  if (u > 2*F) return {label:'倒立縮小的像（實像）', color:'#1565c0', inv:true, virt:false, desc:'物距大於2倍焦距，光線聚焦在另一側，形成倒立、縮小的實像，可投影在螢幕上。生活應用：相機、眼睛。'};
+  if (u === 2*F) return {label:'倒立等大的像（實像）', color:'#6a1b9a', inv:true, virt:false, desc:'物距等於2倍焦距，形成倒立、等大的實像。此距離也稱為「等倍點」。'};
+  if (u > F) return {label:'倒立放大的像（實像）', color:'#00838f', inv:true, virt:false, desc:'物距在1到2倍焦距之間，形成倒立、放大的實像。越接近焦距，像距與像高越大。生活應用：投影機、幻燈機（底片須倒放）。'};
+  if (u === F) return {label:'無有限成像（正好在焦點）', color:'#e65100', inv:false, virt:false, desc:'物距等於焦距，折射後光線互相平行，像距趨近無限遠，因此螢幕上無法接到清楚的有限像。'};
+  return {label:'正立放大的像（虛像）', color:'#2e7d32', inv:false, virt:true, desc:'物距小於焦距，光線折射後發散，向後延伸交於同側，形成正立、放大的虛像。越接近焦距，虛像距離與像高越大。生活應用：放大鏡、老花眼鏡。'};
+}
+
+function imageData(u) {
+  if (u === F) return null;
+  const v = F*u/(u-F);
+  const imgH = OBJ_H*Math.abs(v/u);
+  return {v, imgH, real:u>F, virt:u<F};
+}
+
+function fitOpticsScale(W,H,lx,ay,u,maxSc,margins) {
+  const data = imageData(u);
+  const leftCm = Math.max(u, data?.virt ? Math.abs(data.v) : 0, 2*F);
+  const rightCm = Math.max(data?.real ? data.v : 0, 2*F);
+  let sc = maxSc;
+  sc = Math.min(sc, (lx-margins.left)/leftCm, (W-lx-margins.right)/rightCm);
+  sc = Math.min(sc, (ay-margins.top)/OBJ_H);
+  if (data) {
+    const verticalRoom = data.real ? H-margins.bottom-ay : ay-margins.top;
+    sc = Math.min(sc, verticalRoom/data.imgH);
+  }
+  return Math.max(sc, 0.22);
 }
 
 // ─── TAB 1: SIMULATION ─────────────────────────────────────
@@ -517,9 +538,9 @@ function drawSim(u, info) {
   c.clearRect(0,0,W,H);
   c.fillStyle='#f7faff'; c.fillRect(0,0,W,H);
 
-  const sc   = Math.min((W*0.44)/90, 4);  // px per cm, shared by distance and height
   const lx   = Math.round(W * 0.52);       // lens x
   const ay   = Math.round(H * 0.45);       // axis y
+  const sc   = fitOpticsScale(W,H,lx,ay,u,Math.min((W*0.44)/90, 4),{left:54,right:54,top:50,bottom:46});
   const fPx  = F * sc;
   const ch   = OBJ_H * sc;                  // candle height px
 
@@ -553,7 +574,7 @@ function drawSim(u, info) {
   }
 
   // image
-  if (!info.virt && Math.abs(u-F)>2 && u>F) {
+  if (!info.virt && u>F) {
     // real image
     const v = F*u/(u-F);
     const ix = lx + v*sc;
@@ -616,27 +637,27 @@ function updateRay() {
 }
 
 function raySummary(u) {
-  if (Math.abs(u-F) <= 2) {
-    return {label:'接近焦點：無清楚成像', color:'#e65100',
-      desc:'　物距接近焦距，折射後光線幾乎平行，像距會變得很遠，因此螢幕上不容易接到清楚的像。'};
+  if (u === F) {
+    return {label:'正好在焦點：無有限成像', color:'#e65100',
+      desc:'　物距等於焦距，折射後光線互相平行，像距趨近無限遠，因此螢幕上無法接到清楚的有限像。'};
   }
   const v = F*u/(u-F);
   const imgH = OBJ_H*Math.abs(v/u);
-  if (u > 2*F+1) {
+  if (u > 2*F) {
     return {label:'倒立縮小的實像', color:'#1565c0',
       desc:`　像在透鏡另一側，像距約 ${formatCm(v)} cm，像高約 ${formatCm(imgH)} cm。`};
   }
-  if (u >= 2*F-1) {
+  if (u === 2*F) {
     return {label:'倒立等大的實像', color:'#6a1b9a',
       desc:`　物距約等於 2 倍焦距，像距約 ${formatCm(v)} cm，像高約 ${formatCm(imgH)} cm。`};
   }
-  if (u > F+2) {
+  if (u > F) {
     return {label:'倒立放大的實像', color:'#00838f',
-      desc:`　像在透鏡另一側，像距約 ${formatCm(v)} cm，像高約 ${formatCm(imgH)} cm；像可能超出畫面，請看邊界提示。`};
+      desc:`　像在透鏡另一側，像距約 ${formatCm(v)} cm，像高約 ${formatCm(imgH)} cm；越接近焦點，像距與像高越大。`};
   }
   const virtualDistance = Math.abs(v);
   return {label:'正立放大的虛像', color:'#2e7d32',
-    desc:`　像在物體同側，像距約 ${formatCm(virtualDistance)} cm，像高約 ${formatCm(imgH)} cm；虛像只能用眼睛觀察，無法投影在螢幕上。`};
+    desc:`　像在物體同側，像距約 ${formatCm(virtualDistance)} cm，像高約 ${formatCm(imgH)} cm；越接近焦點，虛像距離與像高越大。虛像只能用眼睛觀察，無法投影在螢幕上。`};
 }
 
 function drawRay(u) {
@@ -649,11 +670,11 @@ function drawRay(u) {
   for(let x=0;x<W;x+=50){line(c,x,0,x,H);}
   for(let y=0;y<H;y+=50){line(c,0,y,W,y);}
 
-  const sc  = Math.min((W*0.44)/190, 3.2);
   const lx  = Math.round(W*0.52);
-  const nearFocus = Math.abs(u-F) <= 2;
-  const real = u > F+2;
+  const nearFocus = u === F;
+  const real = u > F;
   const ay  = Math.round(H*(real ? 0.34 : nearFocus ? 0.50 : 0.66));
+  const sc  = fitOpticsScale(W,H,lx,ay,u,Math.min((W*0.44)/190, 3.2),{left:48,right:48,top:44,bottom:48});
   const fPx = F*sc;
   const oh  = OBJ_H * sc;
 
