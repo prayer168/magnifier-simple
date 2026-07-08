@@ -569,7 +569,7 @@ function drawSim(u, info) {
     drawCandle(c, ox, ay, ch, false, 1);
     drawHeightLabel(c, ox-18, ay-ch, ay, '物高 '+OBJ_H+' cm', '#92400e', 'left');
     c.fillStyle='#92400e'; c.font='bold 13px sans-serif';
-    c.fillText('物體', ox-22, ay-ch-22);
+    c.fillText('蠟燭', ox-22, ay-ch-22);
     drawDistanceLabel(c, ox, lx, ay+44, '物距 '+u+' cm', '#546e7a');
   }
 
@@ -705,7 +705,7 @@ function drawRay(u) {
     drawHeightLabel(c, ox-18, oy, ay, '物高 '+OBJ_H+' cm', '#92400e', 'left');
     c.fillStyle='#f97316';
     c.beginPath();c.ellipse(ox,oy-9,5,9,0,0,Math.PI*2);c.fill();
-    c.fillStyle='#92400e';c.font='bold 14px sans-serif';c.fillText('物',ox-8,oy-24);
+    c.fillStyle='#92400e';c.font='bold 14px sans-serif';c.fillText('蠟燭',ox-14,oy-24);
   }
 
   if (nearFocus) {
