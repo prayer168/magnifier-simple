@@ -303,7 +303,7 @@ canvas{display:block;width:100%;max-width:100%;border-radius:10px;}
   <div class="sec-title">🕯️ 蠟燭成像模擬台</div>
   <div class="sec-desc">拖曳滑桿，改變蠟燭與凸透鏡的距離，即時觀察成像變化！（本模擬焦距 f＝20 公分）</div>
   <div class="card-shell">
-    <canvas id="simC" height="300"></canvas>
+    <canvas id="simC" height="440"></canvas>
     <div class="slider-row">
       <label>🕯️ 物距</label>
       <div class="slider-wrap">
@@ -499,7 +499,7 @@ const simCtx    = simCanvas.getContext('2d');
 function resizeSim() {
   const w = simCanvas.parentElement.clientWidth - 48;
   simCanvas.width  = Math.max(w, 320);
-  simCanvas.height = 300;
+  simCanvas.height = 440;
 }
 
 function updateSim() {
@@ -517,9 +517,9 @@ function drawSim(u, info) {
   c.clearRect(0,0,W,H);
   c.fillStyle='#f7faff'; c.fillRect(0,0,W,H);
 
-  const sc   = Math.min((W*0.42)/F, 5);   // px per cm
+  const sc   = Math.min((W*0.44)/90, 4);  // px per cm, shared by distance and height
   const lx   = Math.round(W * 0.52);       // lens x
-  const ay   = Math.round(H * 0.55);       // axis y
+  const ay   = Math.round(H * 0.45);       // axis y
   const fPx  = F * sc;
   const ch   = OBJ_H * sc;                  // candle height px
 
@@ -549,27 +549,29 @@ function drawSim(u, info) {
     drawHeightLabel(c, ox-18, ay-ch, ay, '物高 '+OBJ_H+' cm', '#92400e', 'left');
     c.fillStyle='#92400e'; c.font='bold 13px sans-serif';
     c.fillText('物體', ox-22, ay-ch-22);
-    // distance arrow
-    arrowLine(c, ox, ay+38, lx, ay+38, '#90a4ae', 1);
-    c.fillStyle='#546e7a'; c.font='13px sans-serif';
-    const mid = (ox+lx)/2;
-    c.fillText('物距 '+u+' cm', mid-36, ay+56);
+    drawDistanceLabel(c, ox, lx, ay+44, '物距 '+u+' cm', '#546e7a');
   }
 
   // image
-  if (!info.virt && u > F+2 && u < F-2 || (!info.virt && Math.abs(u-F)>2 && u>F)) {
+  if (!info.virt && Math.abs(u-F)>2 && u>F) {
     // real image
     const v = F*u/(u-F);
     const ix = lx + v*sc;
     const ih = ch*(v/u);
     if (ix > lx+4 && ix < W-8) {
-      const drawnIh = Math.min(ih,H*0.38);
-      drawCandle(c, ix, ay, drawnIh, true, 0.6);
       const imgH = OBJ_H*Math.abs(v/u);
-      drawHeightLabel(c, ix+18, ay, ay+drawnIh, '像高 '+formatCm(imgH)+' cm', '#0277bd', 'right');
-      const imgLabelY = Math.min(ay+drawnIh+20, H-28);
+      drawCandle(c, ix, ay, ih, true, 0.6);
+      drawHeightLabel(c, ix+18, ay, ay+ih, '像高 '+formatCm(imgH)+' cm', '#0277bd', 'right');
+      drawDistanceLabel(c, lx, ix, ay+76, '像距 '+formatCm(v)+' cm', '#0277bd');
+      const imgLabelY = Math.min(ay+ih+22, H-28);
       drawTextLabel(c, ix-12, imgLabelY, '像', '#0277bd', 'right');
-      drawTextLabel(c, ix-12, imgLabelY+16, '像距 '+formatCm(v)+' cm', '#0277bd', 'right');
+    } else {
+      const imgH = OBJ_H*Math.abs(v/u);
+      drawImageHint(c, ix >= W ? 'right' : 'left', ay, [
+        ix >= W ? '像在右方較遠處' : '像在左方較遠處',
+        '像距 '+formatCm(v)+' cm',
+        '像高 '+formatCm(imgH)+' cm'
+      ], '#0277bd');
     }
   } else if (info.virt) {
     // virtual image same side
@@ -577,13 +579,19 @@ function drawSim(u, info) {
     const ix = lx + v*sc; // left of lens
     const ih = Math.abs(ch*(v/u));
     if (ix > 8 && ix < lx-4) {
-      const drawnIh = Math.min(ih, H*0.45);
-      drawCandle(c, ix, ay, drawnIh, false, 0.45, true);
       const imgH = OBJ_H*Math.abs(v/u);
-      drawHeightLabel(c, ix-18, ay-drawnIh, ay, '像高 '+formatCm(imgH)+' cm', '#2e7d32', 'left');
+      drawCandle(c, ix, ay, ih, false, 0.45, true);
+      drawHeightLabel(c, ix-18, ay-ih, ay, '像高 '+formatCm(imgH)+' cm', '#2e7d32', 'left');
+      drawDistanceLabel(c, ix, lx, ay+76, '像距 '+formatCm(Math.abs(v))+' cm', '#2e7d32');
       c.fillStyle='#2e7d32'; c.font='13px sans-serif';
-      c.fillText('虛像（正立放大）', ix-44, ay-drawnIh-16);
-      c.fillText('像距 '+formatCm(Math.abs(v))+' cm', ix-34, ay+22);
+      c.fillText('虛像（正立放大）', ix-44, ay-ih-16);
+    } else {
+      const imgH = OBJ_H*Math.abs(v/u);
+      drawImageHint(c, ix < 8 ? 'left' : 'right', ay, [
+        ix < 8 ? '虛像在左方較遠處' : '虛像在右方較遠處',
+        '像距 '+formatCm(Math.abs(v))+' cm',
+        '像高 '+formatCm(imgH)+' cm'
+      ], '#2e7d32');
     }
   }
 }
@@ -840,6 +848,24 @@ function arrowLine(c,x1,y1,x2,y2,col,lw){
   c.strokeStyle=col;c.lineWidth=lw;
   line(c,x1,y1,x2,y2);
   arrowHead(c,x2,y2,col,Math.atan2(y2-y1,x2-x1));
+}
+
+function drawDistanceLabel(c,x1,x2,y,text,col){
+  const left = Math.min(x1,x2), right = Math.max(x1,x2);
+  if(right-left < 24) return;
+  c.save();
+  c.strokeStyle=col;c.fillStyle=col;c.lineWidth=1.6;
+  line(c,left,y,right,y);
+  arrowHead(c,left,y,col,Math.PI);
+  arrowHead(c,right,y,col,0);
+  c.font='bold 12px sans-serif';
+  const tw = c.measureText(text).width;
+  const tx = Math.max(8, Math.min((left+right)/2 - tw/2, c.canvas.width - tw - 8));
+  c.fillStyle='rgba(255,255,255,0.9)';
+  c.fillRect(tx-4, y+6, tw+8, 19);
+  c.fillStyle=col;
+  c.fillText(text, tx, y+20);
+  c.restore();
 }
 
 function formatCm(n){
