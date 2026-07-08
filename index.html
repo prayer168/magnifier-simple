@@ -584,7 +584,7 @@ function drawSim(u, info) {
       drawCandle(c, ix, ay, ih, true, 0.6);
       drawHeightLabel(c, ix+18, ay, ay+ih, '像高 '+formatCm(imgH)+' cm', '#0277bd', 'right');
       drawDistanceLabel(c, lx, ix, ay+76, '像距 '+formatCm(v)+' cm', '#0277bd');
-      const imgLabelY = Math.min(ay+ih+22, H-28);
+      const imgLabelY = Math.min(ay+ih*0.55, H-28);
       drawTextLabel(c, ix-12, imgLabelY, '像', '#0277bd', 'right');
     } else {
       const imgH = OBJ_H*Math.abs(v/u);
