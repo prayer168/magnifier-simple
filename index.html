@@ -677,6 +677,8 @@ function drawRay(u) {
   const sc  = fitOpticsScale(W,H,lx,ay,u,Math.min((W*0.44)/190, 3.2),{left:48,right:48,top:44,bottom:48});
   const fPx = F*sc;
   const oh  = OBJ_H * sc;
+  const lensHalf = H*0.75/2;
+  let greenLegend = '通過焦點的光線';
 
   // axis
   dashed(c,10,ay,W-10,ay,'#90a4ae',2,[10,5]);
@@ -739,20 +741,35 @@ function drawRay(u) {
       line(c,r1x,r1y,W-8,r1y+slp1*(W-8-r1x));
     }
 
-    // ─ Ray 2 (green): through left F → parallel after lens
+    // ─ Ray 2 (green): through left F if it enters the visible lens;
+    // otherwise use an auxiliary ray through the visible lens aperture.
     const lfx=lx-fPx;
-    // direction from oy to lens: slope = (atLensY - oy)/(lx - ox)
-    // ray from (ox,oy) passes through (lfx,ay) extended to (lx,?)
     const slp2=(ay-oy)/(lfx-ox);
     const r2y=oy+slp2*(lx-ox);
+    const lensTop = ay-lensHalf+18;
+    const lensBot = ay+lensHalf-18;
+    const r2InsideLens = r2y >= lensTop && r2y <= lensBot;
     c.strokeStyle='#16a34a';c.lineWidth=2.5;
-    line(c,ox,oy,lx,r2y);
-    // after lens: horizontal (parallel to axis)
-    if(ix>lx+4&&ix<W-8){
-      line(c,lx,r2y,ix,r2y);
-      arrowHead(c,ix,r2y,'#16a34a',0);
+    if (r2InsideLens) {
+      line(c,ox,oy,lx,r2y);
+      if(ix>lx+4&&ix<W-8){
+        line(c,lx,r2y,ix,r2y);
+        arrowHead(c,ix,r2y,'#16a34a',0);
+      } else {
+        line(c,lx,r2y,W-8,r2y);
+      }
     } else {
-      line(c,lx,r2y,W-8,r2y);
+      greenLegend = '通過鏡片的輔助光線';
+      const lensY = Math.max(lensTop, Math.min(lensBot, r2y));
+      line(c,ox,oy,lx,lensY);
+      if(ix>lx+4&&ix<W-8){
+        line(c,lx,lensY,ix,iy);
+        arrowHead(c,ix,iy,'#16a34a',Math.atan2(iy-lensY,ix-lx));
+      } else {
+        const ex = W-8;
+        const slpAux = (iy-lensY)/(ix-lx);
+        line(c,lx,lensY,ex,lensY+slpAux*(ex-lx));
+      }
     }
 
     // ─ Ray 3 (blue): through optical centre O
@@ -833,7 +850,7 @@ function drawRay(u) {
   }
 
   // legend
-  [['#ef4444','平行主軸的光線'],['#16a34a','通過焦點的光線'],['#1565c0','通過光心的光線']].forEach(([col,txt],i)=>{
+  [['#ef4444','平行主軸的光線'],['#16a34a',greenLegend],['#1565c0','通過光心的光線']].forEach(([col,txt],i)=>{
     c.strokeStyle=col;c.lineWidth=2.5;
     line(c,14,16+i*22,46,16+i*22);
     c.fillStyle='#1a2b4a';c.font='13px sans-serif';
