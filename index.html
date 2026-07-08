@@ -492,34 +492,6 @@ function imgInfo(u) {
   return {label:'正立放大的像（虛像）', color:'#2e7d32', inv:false, virt:true, desc:'物距小於焦距，光線折射後發散，向後延伸交於同側，形成正立、放大的虛像。越接近焦距，虛像距離與像高越大。生活應用：放大鏡、老花眼鏡。'};
 }
 
-function imageData(u) {
-  if (u === F) return null;
-  const v = F*u/(u-F);
-  const imgH = OBJ_H*Math.abs(v/u);
-  return {v, imgH, real:u>F, virt:u<F};
-}
-
-function fitOpticsScale(W,H,lx,ay,u,maxSc,margins) {
-  const data = imageData(u);
-  const leftCm = Math.max(u, data?.virt ? Math.abs(data.v) : 0, 2*F);
-  const rightCm = Math.max(data?.real ? data.v : 0, 2*F);
-  let sc = maxSc;
-  sc = Math.min(sc, (lx-margins.left)/leftCm, (W-lx-margins.right)/rightCm);
-  sc = Math.min(sc, (ay-margins.top)/OBJ_H);
-  if (data) {
-    const verticalRoom = data.real ? H-margins.bottom-ay : ay-margins.top;
-    sc = Math.min(sc, verticalRoom/data.imgH);
-  }
-  return Math.max(sc, 0.22);
-}
-
-function fitSegmentScale(W,H,lx,ay,u,maxSc,margins) {
-  if (u === F) return maxSc;
-  if (u > F && u < 2*F) return fitOpticsScale(W,H,lx,ay,F+1,maxSc,margins);
-  if (u < F) return fitOpticsScale(W,H,lx,ay,F-1,maxSc,margins);
-  return fitOpticsScale(W,H,lx,ay,u,maxSc,margins);
-}
-
 // ─── TAB 1: SIMULATION ─────────────────────────────────────
 const simCanvas = document.getElementById('simC');
 const simCtx    = simCanvas.getContext('2d');
@@ -547,7 +519,7 @@ function drawSim(u, info) {
 
   const lx   = Math.round(W * 0.52);       // lens x
   const ay   = Math.round(H * 0.45);       // axis y
-  const sc   = fitSegmentScale(W,H,lx,ay,u,Math.min((W*0.44)/90, 4),{left:54,right:54,top:50,bottom:46});
+  const sc   = Math.min((W*0.44)/90, 3.2);
   const fPx  = F * sc;
   const ch   = OBJ_H * sc;                  // candle height px
 
@@ -586,7 +558,7 @@ function drawSim(u, info) {
     const v = F*u/(u-F);
     const ix = lx + v*sc;
     const ih = ch*(v/u);
-    if (ix > lx+4 && ix < W-8) {
+    if (ix > lx+4 && ix < W-8 && ay+ih < H-12) {
       const imgH = OBJ_H*Math.abs(v/u);
       drawCandle(c, ix, ay, ih, true, 0.6);
       drawHeightLabel(c, ix+18, ay, ay+ih, '像高 '+formatCm(imgH)+' cm', '#0277bd', 'right');
@@ -606,7 +578,7 @@ function drawSim(u, info) {
     const v  = F*u/(u-F); // negative
     const ix = lx + v*sc; // left of lens
     const ih = Math.abs(ch*(v/u));
-    if (ix > 8 && ix < lx-4) {
+    if (ix > 8 && ix < lx-4 && ay-ih > 12) {
       const imgH = OBJ_H*Math.abs(v/u);
       drawCandle(c, ix, ay, ih, false, 0.45, true);
       drawHeightLabel(c, ix-18, ay-ih, ay, '像高 '+formatCm(imgH)+' cm', '#2e7d32', 'left');
@@ -681,7 +653,7 @@ function drawRay(u) {
   const nearFocus = u === F;
   const real = u > F;
   const ay  = Math.round(H*(real ? 0.34 : nearFocus ? 0.50 : 0.66));
-  const sc  = fitSegmentScale(W,H,lx,ay,u,Math.min((W*0.44)/190, 3.2),{left:48,right:48,top:44,bottom:48});
+  const sc  = Math.min((W*0.44)/90, 3.2);
   const fPx = F*sc;
   const oh  = OBJ_H * sc;
   const lensHalf = H*0.75/2;
@@ -733,6 +705,7 @@ function drawRay(u) {
     const v  = F*u/(u-F);
     const ix = lx + v*sc;
     const iy = ay + oh*(v/u); // inverted → below axis
+    const imageInFrame = ix>lx+4 && ix<W-8 && iy>8 && iy<H-8;
 
     // ─ Ray 1 (red): parallel to axis → right focal pt
     const r1x=lx, r1y=oy; // hits lens at tip height
@@ -741,7 +714,7 @@ function drawRay(u) {
     line(c,ox,oy,r1x,r1y);
     // after lens towards focal pt direction extended to ix
     const slp1=(rfy-r1y)/(rfx-r1x);
-    if(ix>lx+4&&ix<W-8){
+    if(imageInFrame){
       line(c,r1x,r1y,ix,iy);
       arrowHead(c,ix,iy,'#ef4444',Math.atan2(iy-r1y,ix-r1x));
     } else {
@@ -759,7 +732,7 @@ function drawRay(u) {
     c.strokeStyle='#16a34a';c.lineWidth=2.5;
     if (r2InsideLens) {
       line(c,ox,oy,lx,r2y);
-      if(ix>lx+4&&ix<W-8){
+      if(imageInFrame){
         line(c,lx,r2y,ix,r2y);
         arrowHead(c,ix,r2y,'#16a34a',0);
       } else {
@@ -769,7 +742,7 @@ function drawRay(u) {
       greenLegend = '通過鏡片的輔助光線';
       const lensY = Math.max(lensTop, Math.min(lensBot, r2y));
       line(c,ox,oy,lx,lensY);
-      if(ix>lx+4&&ix<W-8){
+      if(imageInFrame){
         line(c,lx,lensY,ix,iy);
         arrowHead(c,ix,iy,'#16a34a',Math.atan2(iy-lensY,ix-lx));
       } else {
@@ -783,7 +756,7 @@ function drawRay(u) {
     const slp3=(ay-oy)/(lx-ox);
     c.strokeStyle='#1565c0';c.lineWidth=2.5;
     line(c,ox,oy,lx,ay);
-    if(ix>lx+4&&ix<W-8){
+    if(imageInFrame){
       line(c,lx,ay,ix,iy);
       arrowHead(c,ix,iy,'#1565c0',Math.atan2(iy-ay,ix-lx));
     } else {
@@ -792,7 +765,7 @@ function drawRay(u) {
     }
 
     // image
-    if(ix>lx+4&&ix<W-8){
+    if(imageInFrame){
       arrowLine(c,ix,ay,ix,iy,'#2196f3',3);
       const imgH = OBJ_H*Math.abs(v/u);
       drawHeightLabel(c, ix+18, ay, iy, '像高 '+formatCm(imgH)+' cm', '#0d47a1', 'right');
@@ -835,7 +808,7 @@ function drawRay(u) {
     dashed(c,lx,ay,Math.max(10,ix),iy,'#1565c0',1.5,[5,4]);
 
     // virtual image
-    if(ix>8&&ix<lx-2){
+    if(ix>8&&ix<lx-2&&iy>8&&iy<H-8){
       c.setLineDash([6,4]);
       c.strokeStyle='#2e7d32';c.lineWidth=2;
       c.beginPath();c.moveTo(ix,ay);c.lineTo(ix,iy);c.stroke();
