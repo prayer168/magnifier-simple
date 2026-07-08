@@ -567,8 +567,9 @@ function drawSim(u, info) {
       drawTextLabel(c, ix-12, imgLabelY, '像', '#0277bd', 'right');
     } else {
       const imgH = OBJ_H*Math.abs(v/u);
-      drawImageHint(c, ix >= W ? 'right' : 'left', ay, [
-        ix >= W ? '像在右方較遠處' : '像在左方較遠處',
+      drawImageHint(c, 'right', ay, [
+        '實像在凸透鏡右側',
+        ix >= W ? '像在右方較遠處' : '像高太大，超出畫面',
         '像距 '+formatCm(v)+' cm',
         '像高 '+formatCm(imgH)+' cm'
       ], '#0277bd');
@@ -587,8 +588,9 @@ function drawSim(u, info) {
       c.fillText('虛像（正立放大）', ix-44, ay-ih-16);
     } else {
       const imgH = OBJ_H*Math.abs(v/u);
-      drawImageHint(c, ix < 8 ? 'left' : 'right', ay, [
-        ix < 8 ? '虛像在左方較遠處' : '虛像在右方較遠處',
+      drawImageHint(c, 'left', ay, [
+        '虛像在凸透鏡左側',
+        ix < 8 ? '虛像在左方較遠處' : '像高太大，超出畫面',
         '像距 '+formatCm(Math.abs(v))+' cm',
         '像高 '+formatCm(imgH)+' cm'
       ], '#2e7d32');
@@ -776,8 +778,9 @@ function drawRay(u) {
       drawTextLabel(c, ix-12, iy+22, '像距 '+formatCm(v)+' cm', '#0d47a1', 'right');
     } else {
       const imgH = OBJ_H*Math.abs(v/u);
-      drawImageHint(c, ix >= W ? 'right' : 'left', ay, [
-        ix >= W ? '像在右方較遠處' : '像在左方較遠處',
+      drawImageHint(c, 'right', ay, [
+        '實像在凸透鏡右側',
+        ix >= W ? '像在右方較遠處' : '像高太大，超出畫面',
         '像距 '+formatCm(v)+' cm',
         '像高 '+formatCm(imgH)+' cm'
       ], '#0d47a1');
@@ -821,8 +824,9 @@ function drawRay(u) {
       c.fillText('像距 '+formatCm(Math.abs(v))+' cm',ix-36,ay+24);
     } else {
       const imgH = OBJ_H*Math.abs(v/u);
-      drawImageHint(c, ix < 8 ? 'left' : 'right', ay, [
-        ix < 8 ? '虛像在左方較遠處' : '虛像在右方較遠處',
+      drawImageHint(c, 'left', ay, [
+        '虛像在凸透鏡左側',
+        ix < 8 ? '虛像在左方較遠處' : '像高太大，超出畫面',
         '像距 '+formatCm(Math.abs(v))+' cm',
         '像高 '+formatCm(imgH)+' cm'
       ], '#1b5e20');
