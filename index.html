@@ -340,7 +340,7 @@ canvas{display:block;width:100%;max-width:100%;border-radius:10px;}
   <div class="sec-title">📐 光線折射路徑動畫</div>
   <div class="sec-desc">調整物距，觀察三條標準光線如何通過凸透鏡折射，理解成像的幾何原理。</div>
   <div class="card-shell">
-    <canvas id="rayC" height="380"></canvas>
+    <canvas id="rayC" height="560"></canvas>
     <div class="slider-row">
       <label>🕯️ 物距</label>
       <div class="slider-wrap">
@@ -603,7 +603,7 @@ const rayCtx    = rayCanvas.getContext('2d');
 function resizeRay() {
   const w = rayCanvas.parentElement.clientWidth - 48;
   rayCanvas.width  = Math.max(w, 320);
-  rayCanvas.height = 380;
+  rayCanvas.height = 560;
 }
 
 function updateRay() {
@@ -649,9 +649,11 @@ function drawRay(u) {
   for(let x=0;x<W;x+=50){line(c,x,0,x,H);}
   for(let y=0;y<H;y+=50){line(c,0,y,W,y);}
 
-  const sc  = Math.min((W*0.40)/F, 5.5);
+  const sc  = Math.min((W*0.44)/190, 3.2);
   const lx  = Math.round(W*0.52);
-  const ay  = Math.round(H*0.50);
+  const nearFocus = Math.abs(u-F) <= 2;
+  const real = u > F+2;
+  const ay  = Math.round(H*(real ? 0.34 : nearFocus ? 0.50 : 0.66));
   const fPx = F*sc;
   const oh  = OBJ_H * sc;
 
@@ -682,9 +684,6 @@ function drawRay(u) {
     c.beginPath();c.ellipse(ox,oy-9,5,9,0,0,Math.PI*2);c.fill();
     c.fillStyle='#92400e';c.font='bold 14px sans-serif';c.fillText('物',ox-8,oy-24);
   }
-
-  const nearFocus = Math.abs(u-F) <= 2;
-  const real = u > F+2;
 
   if (nearFocus) {
     c.strokeStyle='#ef4444';c.lineWidth=2.5;
