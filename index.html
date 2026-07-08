@@ -513,6 +513,13 @@ function fitOpticsScale(W,H,lx,ay,u,maxSc,margins) {
   return Math.max(sc, 0.22);
 }
 
+function fitSegmentScale(W,H,lx,ay,u,maxSc,margins) {
+  if (u === F) return maxSc;
+  if (u > F && u < 2*F) return fitOpticsScale(W,H,lx,ay,F+1,maxSc,margins);
+  if (u < F) return fitOpticsScale(W,H,lx,ay,F-1,maxSc,margins);
+  return fitOpticsScale(W,H,lx,ay,u,maxSc,margins);
+}
+
 // ─── TAB 1: SIMULATION ─────────────────────────────────────
 const simCanvas = document.getElementById('simC');
 const simCtx    = simCanvas.getContext('2d');
@@ -540,7 +547,7 @@ function drawSim(u, info) {
 
   const lx   = Math.round(W * 0.52);       // lens x
   const ay   = Math.round(H * 0.45);       // axis y
-  const sc   = fitOpticsScale(W,H,lx,ay,u,Math.min((W*0.44)/90, 4),{left:54,right:54,top:50,bottom:46});
+  const sc   = fitSegmentScale(W,H,lx,ay,u,Math.min((W*0.44)/90, 4),{left:54,right:54,top:50,bottom:46});
   const fPx  = F * sc;
   const ch   = OBJ_H * sc;                  // candle height px
 
