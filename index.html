@@ -654,11 +654,15 @@ function drawRay(u) {
   const lx  = Math.round(W*0.52);
   const nearFocus = u === F;
   const real = u > F;
-  const ay  = Math.round(H*(real ? 0.34 : nearFocus ? 0.50 : 0.66));
+  // Keep the optical axis and lens proportions aligned with Experiment 1.
+  // The previous real-image layout moved the axis too high, clipping the
+  // upper half of the lens as soon as the object distance exceeded 20 cm.
+  const ay  = Math.round(H * 0.45);
   const sc  = Math.min((W*0.44)/90, 3.2);
   const fPx = F*sc;
   const oh  = OBJ_H * sc;
-  const lensHalf = H*0.75/2;
+  const lensHeight = H * 0.70;
+  const lensHalf = lensHeight/2;
   let greenLegend = '通過焦點的光線';
 
   // axis
@@ -676,17 +680,16 @@ function drawRay(u) {
   });
 
   // lens
-  drawLens(c, lx, ay, H*0.75);
+  drawLens(c, lx, ay, lensHeight);
 
   // object
   const ox = lx - u*sc;
   const oy = ay - oh;
   if (ox>8) {
-    arrowLine(c, ox,ay, ox,oy, '#f59e0b',3);
+    drawCandle(c, ox, ay, oh, false, 1);
     drawHeightLabel(c, ox-18, oy, ay, '物高 '+OBJ_H+' cm', '#92400e', 'left');
-    c.fillStyle='#f97316';
-    c.beginPath();c.ellipse(ox,oy-9,5,9,0,0,Math.PI*2);c.fill();
-    c.fillStyle='#92400e';c.font='bold 14px sans-serif';c.fillText('物',ox-8,oy-24);
+    c.fillStyle='#92400e';c.font='bold 13px sans-serif';
+    c.fillText('物體', ox-22, oy-22);
   }
 
   if (nearFocus) {
@@ -768,14 +771,11 @@ function drawRay(u) {
 
     // image
     if(imageInFrame){
-      arrowLine(c,ix,ay,ix,iy,'#2196f3',3);
       const imgH = OBJ_H*Math.abs(v/u);
+      drawCandle(c, ix, ay, Math.abs(iy-ay), true, 0.6);
       drawHeightLabel(c, ix+18, ay, iy, '像高 '+formatCm(imgH)+' cm', '#0d47a1', 'right');
-      c.beginPath();c.arc(ix,iy,6,0,Math.PI*2);
-      c.fillStyle='#dc2626';c.fill();
-      c.fillStyle='#0d47a1';c.font='bold 14px sans-serif';
       drawTextLabel(c, ix-12, ay+(iy-ay)/2, '像', '#0d47a1', 'right');
-      drawTextLabel(c, ix-12, iy+22, '像距 '+formatCm(v)+' cm', '#0d47a1', 'right');
+      drawDistanceLabel(c, lx, ix, ay+76, '像距 '+formatCm(v)+' cm', '#0d47a1');
     } else {
       const imgH = OBJ_H*Math.abs(v/u);
       drawImageHint(c, 'right', ay, [
@@ -812,16 +812,12 @@ function drawRay(u) {
 
     // virtual image
     if(ix>8&&ix<lx-2&&iy>8&&iy<H-8){
-      c.setLineDash([6,4]);
-      c.strokeStyle='#2e7d32';c.lineWidth=2;
-      c.beginPath();c.moveTo(ix,ay);c.lineTo(ix,iy);c.stroke();
-      c.setLineDash([]);
       const imgH = OBJ_H*Math.abs(v/u);
+      drawCandle(c, ix, ay, Math.abs(ay-iy), false, 0.45, true);
       drawHeightLabel(c, ix-18, iy, ay, '像高 '+formatCm(imgH)+' cm', '#1b5e20', 'left');
       c.fillStyle='#1b5e20';c.font='bold 14px sans-serif';
-      c.fillText('虛像',ix-38,iy-12);
-      c.font='12px sans-serif';
-      c.fillText('像距 '+formatCm(Math.abs(v))+' cm',ix-36,ay+24);
+      c.fillText('虛像（正立放大）', ix-44, iy-16);
+      drawDistanceLabel(c, ix, lx, ay+76, '像距 '+formatCm(Math.abs(v))+' cm', '#1b5e20');
     } else {
       const imgH = OBJ_H*Math.abs(v/u);
       drawImageHint(c, 'left', ay, [
