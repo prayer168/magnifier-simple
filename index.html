@@ -693,10 +693,14 @@ function drawRay(u) {
   }
 
   if (nearFocus) {
+    // A parallel incident ray still refracts through the far focal point.
+    // With the object at F, this outgoing ray is parallel to the ray through O.
     c.strokeStyle='#ef4444';c.lineWidth=2.5;
     line(c,ox,oy,lx,oy);
-    line(c,lx,oy,W-8,oy);
-    arrowHead(c,W-8,oy,'#ef4444',0);
+    const slp1=(ay-oy)/fPx;
+    const redEndY=oy+slp1*(W-8-lx);
+    line(c,lx,oy,W-8,redEndY);
+    arrowHead(c,W-8,redEndY,'#ef4444',Math.atan2(redEndY-oy,W-8-lx));
     const slp3=(ay-oy)/(lx-ox);
     c.strokeStyle='#1565c0';c.lineWidth=2.5;
     line(c,ox,oy,lx,ay);

@@ -1,0 +1,264 @@
+{
+  "generatedAt": "2026-07-13T08:35:58.680Z",
+  "project": "magnifier-simple",
+  "config": ".\\physics-audit.json",
+  "model": {
+    "focalLength": 20,
+    "objectHeight": 20,
+    "convention": "real-is-positive"
+  },
+  "summary": {
+    "passed": 41,
+    "failed": 0,
+    "warnings": 0
+  },
+  "checks": [
+    {
+      "id": "薄透鏡公式用於各成像分支",
+      "ok": true,
+      "severity": "error",
+      "detail": "找到 5 處 v = fu/(u-f)，最低要求 5 處"
+    },
+    {
+      "id": "瀏覽器載入",
+      "ok": true,
+      "severity": "error",
+      "detail": "ready=complete；title=放大鏡實驗互動學習；文字長度=486"
+    },
+    {
+      "id": "必要函式可調用",
+      "ok": true,
+      "severity": "error",
+      "detail": "{\"imageInfo\":true,\"raySummary\":true,\"drawSimulation\":true,\"drawRay\":true,\"line\":true,\"drawLens\":true,\"drawCandle\":true}"
+    },
+    {
+      "id": "兩個實驗參數一致",
+      "ok": true,
+      "severity": "error",
+      "detail": "成像=[\"4\",\"90\",\"40\",\"1\"]；光路=[\"4\",\"90\",\"40\",\"1\"]"
+    },
+    {
+      "id": "模型常數有效",
+      "ok": true,
+      "severity": "error",
+      "detail": "f=20 cm；h_o=20 cm"
+    },
+    {
+      "id": "u=4 cm 成像分類",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期=virtual-enlarged；成像=正立放大的像（虛像）；光路=正立放大的虛像"
+    },
+    {
+      "id": "u=4 cm 數值",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期 |v|=5.000, |h_i|=25.000；顯示=5, 25"
+    },
+    {
+      "id": "u=4 cm 透鏡未裁切",
+      "ok": true,
+      "severity": "error",
+      "detail": "y=56..448，畫布高=560"
+    },
+    {
+      "id": "u=10 cm 成像分類",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期=virtual-enlarged；成像=正立放大的像（虛像）；光路=正立放大的虛像"
+    },
+    {
+      "id": "u=10 cm 數值",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期 |v|=20.000, |h_i|=40.000；顯示=20, 40"
+    },
+    {
+      "id": "u=10 cm 透鏡未裁切",
+      "ok": true,
+      "severity": "error",
+      "detail": "y=56..448，畫布高=560"
+    },
+    {
+      "id": "u=19 cm 成像分類",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期=virtual-enlarged；成像=正立放大的像（虛像）；光路=正立放大的虛像"
+    },
+    {
+      "id": "u=19 cm 數值",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期 |v|=380.000, |h_i|=400.000；顯示=380, 400"
+    },
+    {
+      "id": "u=19 cm 透鏡未裁切",
+      "ok": true,
+      "severity": "error",
+      "detail": "y=56..448，畫布高=560"
+    },
+    {
+      "id": "u=20 cm 成像分類",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期=infinity；成像=無有限成像（正好在焦點）；光路=正好在焦點：無有限成像"
+    },
+    {
+      "id": "u=20 cm 透鏡未裁切",
+      "ok": true,
+      "severity": "error",
+      "detail": "y=56..448，畫布高=560"
+    },
+    {
+      "id": "u=21 cm 成像分類",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期=real-enlarged；成像=倒立放大的像（實像）；光路=倒立放大的實像"
+    },
+    {
+      "id": "u=21 cm 數值",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期 |v|=420.000, |h_i|=400.000；顯示=420, 400"
+    },
+    {
+      "id": "u=21 cm 透鏡未裁切",
+      "ok": true,
+      "severity": "error",
+      "detail": "y=56..448，畫布高=560"
+    },
+    {
+      "id": "u=22 cm 成像分類",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期=real-enlarged；成像=倒立放大的像（實像）；光路=倒立放大的實像"
+    },
+    {
+      "id": "u=22 cm 數值",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期 |v|=220.000, |h_i|=200.000；顯示=220, 200"
+    },
+    {
+      "id": "u=22 cm 透鏡未裁切",
+      "ok": true,
+      "severity": "error",
+      "detail": "y=56..448，畫布高=560"
+    },
+    {
+      "id": "u=30 cm 成像分類",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期=real-enlarged；成像=倒立放大的像（實像）；光路=倒立放大的實像"
+    },
+    {
+      "id": "u=30 cm 數值",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期 |v|=60.000, |h_i|=40.000；顯示=60, 40"
+    },
+    {
+      "id": "u=30 cm 透鏡未裁切",
+      "ok": true,
+      "severity": "error",
+      "detail": "y=56..448，畫布高=560"
+    },
+    {
+      "id": "u=40 cm 成像分類",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期=real-equal；成像=倒立等大的像（實像）；光路=倒立等大的實像"
+    },
+    {
+      "id": "u=40 cm 數值",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期 |v|=40.000, |h_i|=20.000；顯示=40, 20"
+    },
+    {
+      "id": "u=40 cm 透鏡未裁切",
+      "ok": true,
+      "severity": "error",
+      "detail": "y=56..448，畫布高=560"
+    },
+    {
+      "id": "u=60 cm 成像分類",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期=real-reduced；成像=倒立縮小的像（實像）；光路=倒立縮小的實像"
+    },
+    {
+      "id": "u=60 cm 數值",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期 |v|=30.000, |h_i|=10.000；顯示=30, 10"
+    },
+    {
+      "id": "u=60 cm 透鏡未裁切",
+      "ok": true,
+      "severity": "error",
+      "detail": "y=56..448，畫布高=560"
+    },
+    {
+      "id": "u=90 cm 成像分類",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期=real-reduced；成像=倒立縮小的像（實像）；光路=倒立縮小的實像"
+    },
+    {
+      "id": "u=90 cm 數值",
+      "ok": true,
+      "severity": "error",
+      "detail": "預期 |v|=25.714, |h_i|=5.714；顯示=25.7, 5.7"
+    },
+    {
+      "id": "u=90 cm 透鏡未裁切",
+      "ok": true,
+      "severity": "error",
+      "detail": "y=56..448，畫布高=560"
+    },
+    {
+      "id": "平行入射光折射通過遠焦點",
+      "ok": true,
+      "severity": "error",
+      "detail": "遠焦點預期 y=252；光線 y=252.000"
+    },
+    {
+      "id": "通過近焦點後平行主軸",
+      "ok": true,
+      "severity": "error",
+      "detail": "綠光出射斜率=0.000000"
+    },
+    {
+      "id": "通過光心方向不變",
+      "ok": true,
+      "severity": "error",
+      "detail": "入射斜率=0.500000；出射斜率=0.500000"
+    },
+    {
+      "id": "物體位於焦點時出射光互相平行",
+      "ok": true,
+      "severity": "error",
+      "detail": "紅光斜率=1.000000；藍光斜率=1.000000"
+    },
+    {
+      "id": "虛像回溯線交於同一像點",
+      "ok": true,
+      "severity": "error",
+      "detail": "紅=(134.7,189.4)；藍=(134.7,189.4)"
+    },
+    {
+      "id": "成像與光路使用一致的蠟燭繪圖",
+      "ok": true,
+      "severity": "error",
+      "detail": "成像呼叫=2；光路呼叫=2"
+    },
+    {
+      "id": "必要資源無載入失敗",
+      "ok": true,
+      "severity": "warning",
+      "detail": "無"
+    }
+  ],
+  "rerunCommand": "node \"$env:USERPROFILE\\.codex\\skills\\physics-interactive-audit\\scripts\\audit-thin-lens.mjs\" --project \".\" --config \".\\physics-audit.json\" --output \".\\audit\\physics-audit-report.json\" --markdown \".\\audit\\physics-audit-report.md\""
+}
